@@ -1,0 +1,27 @@
+{
+  "name": "advent.js",
+  "main": "index.js",
+  "version": "0.0.1",
+  "homepage": "https://github.com/djMax/advent.js",
+  "authors": [
+    "Max Metral <ma@x.com>"
+  ],
+  "description": "Javascript playground for kids",
+  "license": "MIT",
+  "private": true,
+  "ignore": [
+    "**/.*",
+    "node_modules",
+    "bower_components",
+    "public/components",
+    "test",
+    "tests"
+  ],
+  "dependencies": {
+    "ace": "~1.1.9",
+    "bootstrap": "~3.3.4",
+    "dustjs-linkedin-helpers": "~1.2.0",
+    "dustjs-linkedin": "~2.3.0",
+    "josh.js": "https://github.com/sdether/josh.js.git#~0.2.10"
+  }
+}
