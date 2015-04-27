@@ -40,11 +40,16 @@ $(function () {
         }
     });
 
+    if (window.localStorage.getItem('code')) {
+        $('#editor').text(window.localStorage.getItem('code'));
+    }
+
     var editor = ace.edit('editor');
     editor.setTheme('ace/theme/monokai');
     editor.getSession().setMode('ace/mode/javascript');
 
     editor.on('change', function () {
+        window.localStorage.setItem('code', editor.getSession().getValue());
         if ($('#autoRun').prop('checked')) {
             try {
                 run();

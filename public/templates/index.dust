@@ -13,7 +13,7 @@
         <div class="col-sm-2" style="height:100%; padding-left: 0px; padding-top: 10px">
             <div class="checkbox text-center">
                 <label>
-                    <input type="checkbox" checked="true" id="autoRun" value="on"> Run on change
+                    <input type="checkbox" id="autoRun"> Run on change
                 </label>
             </div>
             <button id="run" class="btn btn-primary btn-block">Run (Control-R)</button>
