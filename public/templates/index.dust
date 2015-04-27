@@ -1,0 +1,40 @@
+{>"layouts/master" /}
+{<title}Advent.js Javascript Playground{/title}
+{<body}
+    <div class="container-fluid">
+    <div class="row" id="editorRow">
+        <div class="col-sm-10" style="height:100%; padding-left: 0px;">
+            <div id="editor">// Your code goes here.{~n}async function helloWorld() {{~n}
+{~s}{~s}print('What is your name?');{~n}{~s}{~s}var player = await readLine();{~n}{~s}{~s}print(`Hello ${~lb}player{~rb}`);{~n}
+}{~n}
+    helloWorld();
+            </div>
+        </div>
+        <div class="col-sm-2" style="height:100%; padding-left: 0px; padding-top: 10px">
+            <div class="checkbox text-center">
+                <label>
+                    <input type="checkbox" checked="true" id="autoRun" value="on"> Run on change
+                </label>
+            </div>
+            <button id="run" class="btn btn-primary btn-block">Run (Control-R)</button>
+            <button id="run" class="btn btn-primary btn-block">Clear Bottom Screen (Control-L)</button>
+        </div>
+    </div>
+
+    <div class="row" id="consoleRow">
+        <div id="shell-panel">
+            <div id="shell-view"></div>
+        </div>
+    </div>
+
+</div>
+{/body}
+
+{<script}
+<script src="/js/browser-polyfill.js" type="text/javascript"></script>
+<script src="/js/browser.js" type="text/javascript"></script>
+<script src="/components/josh.js/js/readline.js" type="text/javascript"></script>
+<script src="/components/josh.js/js/history.js" type="text/javascript"></script>
+<script src="/components/josh.js/js/killring.js" type="text/javascript"></script>
+<script src="/components/ace-builds/src-noconflict/ace.js" charset="utf-8"></script>
+{/script}

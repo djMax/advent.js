@@ -1,0 +1,19 @@
+{
+    "name": "advent.js",
+    "description": "A playground for Javascript console (e.g. terminal) games.",
+    "keywords": [
+        "javascript",
+        "kids",
+        "es7"
+    ],
+    "repository": "https://github.com/djMax/advent.js.git",
+    "env": {
+        "NODE_ENV": {
+            "description": "development or production.",
+            "value": "production"
+        }
+    },
+    "scripts": {
+        "postdeploy": "bower install; grunt build"
+    }
+}
