@@ -1,12 +1,18 @@
 'use strict';
+
 var JsOutput = require('./jsOutput');
 $(function () {
 
     var appName = document.location.pathname.substring(1);
 
+    if (window.location.search.substring(1).indexOf("p=") === 0) {
+        var prog = window.location.search.substring(3).split('&')[0];
+        $('#editor').text(LZString.decompressFromEncodedURIComponent(prog));
+    }
+
     var jsConfig = {
         onCommand: loggerInput,
-        console:console
+        console: console
     };
     var jsOutput = new JsOutput(jsConfig);
     jsOutput._config = jsConfig;
@@ -20,7 +26,12 @@ $(function () {
     sizer();
     $(window).resize(sizer);
 
+    var prompted = false;
     jsOutput.onNewPrompt(function (callback) {
+        if (!prompted) {
+            prompted = true;
+            return callback('The output of your program will appear here.');
+        }
         callback('');
     });
 
@@ -44,7 +55,7 @@ $(function () {
     });
 
     editor.on('focus', function () {
-       jsOutput.deactivate();
+        jsOutput.deactivate();
     });
 
     editor.commands.addCommand({
@@ -64,6 +75,15 @@ $(function () {
     $('#run').on('click', function () {
         run();
     });
+    $('#clear').on('click', function () {
+        jsOutput.clear();
+    });
+    $('#share').on('click', function () {
+        var url = window.location.href.split('?')[0];
+        var enc = LZString.compressToEncodedURIComponent(editor.getSession().getValue());
+        $('#urlModal textarea').val(url + '?p=' + enc);
+        $('#urlModal').modal();
+    });
 
     var context = closure(editor, jsOutput);
 
@@ -81,25 +101,28 @@ function loggerInput(text) {
 
 function closure(editor, output) {
     var print = function (text) {
-        output.renderOutput(text, function () {});
+        output.renderOutput(text, function () {
+        });
+    }, clear = function () {
+        output.clear();
     }, readLine = function (callback) {
         var resolver;
         output._config.onCommand = function (line) {
             setTimeout(function () {
                 resolver(line);
-            },0);
+            }, 0);
             output._config.onCommand = loggerInput;
             output.deactivate();
         };
         editor.blur();
         output.activate();
-        return new Promise(function (resolve)  {
+        return new Promise(function (resolve) {
             resolver = resolve;
         });
     };
 
-    return function (code) {
-        var transformed = babel.transform(code,{stage:0});
+    return (function (code) {
+        var transformed = babel.transform(code, {stage: 0});
         eval(transformed.code);
-    }
+    });
 }

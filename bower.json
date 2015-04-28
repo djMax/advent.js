@@ -21,6 +21,7 @@
     "josh.js": "https://github.com/sdether/josh.js.git#~0.2.10",
     "underscore": "~1.8.3",
     "ace-builds": "~1.1.9",
-    "github-fork-ribbon-css": "~0.1.1"
+    "github-fork-ribbon-css": "~0.1.1",
+    "lz-string": "~1.4.3"
   }
 }
