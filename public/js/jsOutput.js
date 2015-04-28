@@ -24,6 +24,7 @@ var Josh = window["Josh"] || {};
                 log: function() {
                 }
             });
+        var _noEvents = false;
         var _prompt = config.prompt || 'jsh$';
         var _shell_view_id = config.shell_view_id || 'shell-view';
         var _shell_panel_id = config.shell_panel_id || 'shell-panel';
@@ -78,7 +79,16 @@ var Josh = window["Josh"] || {};
                     _active = false;
                     return;
                 }
+                _line.text = '';
+                _line.cursor = 0;
+                _noEvents = true;
+                _readline.setLine(_line);
+                _noEvents = false;
                 _readline.activate();
+            },
+            clear: function () {
+                $(id(_input_id)).parent().empty();
+                self.refresh();
             },
             deactivate: function() {
                 _console.log("deactivating");
@@ -119,6 +129,7 @@ var Josh = window["Josh"] || {};
             renderOutput: renderOutput,
             render: function() {
                 var text = _line.text || '';
+                _console.log('Start render', text);
                 var cursorIdx = _line.cursor || 0;
                 if(_searchMatch) {
                     cursorIdx = _searchMatch.cursoridx || 0;
@@ -292,8 +303,10 @@ var Josh = window["Josh"] || {};
             }
         });
         _readline.onChange(function(line) {
-            _line = line;
-            self.render();
+            if (!_noEvents) {
+                _line = line;
+                self.render();
+            }
         });
         _readline.onClear(function() {
             _cmdHandlers.clear.exec(null, null, function() {
@@ -318,8 +331,7 @@ var Josh = window["Josh"] || {};
         _readline.onEnter(function(cmdtext, callback) {
             _console.log("got command: " + cmdtext);
             config.onCommand(cmdtext);
-            _line.text = '';
-            _line.cursor = 0;
+            callback(cmdtext);
         });
         _readline.onCompletion(function(line, callback) {
             if(!line) {

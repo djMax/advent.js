@@ -10,11 +10,11 @@ module.exports = function (router) {
 
 
     router.get('/', function (req, res) {
-        
-        
         res.render('index', model);
-        
-        
+    });
+
+    router.get('/:app', function (req, res) {
+        res.render('index', model);
     });
 
 };

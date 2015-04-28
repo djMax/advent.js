@@ -1,10 +1,12 @@
 'use strict';
 var JsOutput = require('./jsOutput');
-
 $(function () {
 
+    var appName = document.location.pathname.substring(1);
+
     var jsConfig = {
-        onCommand: loggerInput
+        onCommand: loggerInput,
+        console:console
     };
     var jsOutput = new JsOutput(jsConfig);
     jsOutput._config = jsConfig;
@@ -22,26 +24,8 @@ $(function () {
         callback('');
     });
 
-    jsOutput.setCommandHandler("hello", {
-        exec: function (cmd, args, callback) {
-            var arg = args[0] || '';
-            var response = "who is this " + arg + " you are talking to?";
-            if (arg === 'josh') {
-                response = 'pleased to meet you.';
-            } else if (arg === 'world') {
-                response = 'world says hi.'
-            } else if (!arg) {
-                response = 'who are you saying hello to?';
-            }
-            callback(response);
-        },
-        completion: function (cmd, arg, line, callback) {
-            callback(shell.bestMatch(arg, ['world', 'josh']))
-        }
-    });
-
-    if (window.localStorage.getItem('code')) {
-        $('#editor').text(window.localStorage.getItem('code'));
+    if (window.localStorage.getItem('code' + appName)) {
+        $('#editor').text(window.localStorage.getItem('code' + appName));
     }
 
     var editor = ace.edit('editor');
@@ -49,7 +33,7 @@ $(function () {
     editor.getSession().setMode('ace/mode/javascript');
 
     editor.on('change', function () {
-        window.localStorage.setItem('code', editor.getSession().getValue());
+        window.localStorage.setItem('code' + appName, editor.getSession().getValue());
         if ($('#autoRun').prop('checked')) {
             try {
                 run();
@@ -58,6 +42,7 @@ $(function () {
             }
         }
     });
+
     editor.on('focus', function () {
        jsOutput.deactivate();
     });
@@ -67,6 +52,13 @@ $(function () {
         bindKey: 'Ctrl-R',
         exec: function (editor) {
             run();
+        }
+    });
+    editor.commands.addCommand({
+        name: 'Clear',
+        bindKey: 'Ctrl-L',
+        exec: function (editor) {
+            jsOutput.clear();
         }
     });
     $('#run').on('click', function () {
@@ -80,7 +72,7 @@ $(function () {
     }
 
     jsOutput.activate();
-    jsOutput.deactivate();
+    editor.focus();
 });
 
 function loggerInput(text) {
@@ -89,17 +81,17 @@ function loggerInput(text) {
 
 function closure(editor, output) {
     var print = function (text) {
-        console.log('print');
         output.renderOutput(text, function () {});
     }, readLine = function (callback) {
-        console.log('Called readLine', arguments);
         var resolver;
         output._config.onCommand = function (line) {
-            console.log('Got expected input', line);
-            resolver(line);
+            setTimeout(function () {
+                resolver(line);
+            },0);
             output._config.onCommand = loggerInput;
             output.deactivate();
-        }
+        };
+        editor.blur();
         output.activate();
         return new Promise(function (resolve)  {
             resolver = resolve;
@@ -107,8 +99,7 @@ function closure(editor, output) {
     };
 
     return function (code) {
-        var transformed = babel.transform(code,{stage:2,optional:["asyncToGenerator"]});
-        console.log(transformed);
+        var transformed = babel.transform(code,{stage:0});
         eval(transformed.code);
     }
 }

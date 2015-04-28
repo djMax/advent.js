@@ -1,6 +1,11 @@
 {>"layouts/master" /}
 {<title}Advent.js Javascript Playground{/title}
 {<body}
+    <div class="github-fork-ribbon-wrapper right-bottom">
+        <div class="github-fork-ribbon">
+            <a target="_blank" href="https://github.com/djMax/advent.js">Fork me on GitHub</a>
+        </div>
+    </div>
     <div class="container-fluid">
     <div class="row" id="editorRow">
         <div class="col-sm-10" style="height:100%; padding-left: 0px;">
@@ -30,6 +35,10 @@
 </div>
 {/body}
 
+{<style}
+<link href="/components/github-fork-ribbon-css/gh-fork-ribbon.css" rel="stylesheet" type="text/css">
+<link href='http://fonts.googleapis.com/css?family=Source+Code+Pro' rel='stylesheet' type='text/css'>
+{/style}
 {<script}
 <script src="/js/browser-polyfill.js" type="text/javascript"></script>
 <script src="/js/browser.js" type="text/javascript"></script>
