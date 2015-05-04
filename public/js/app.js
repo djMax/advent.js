@@ -7,7 +7,14 @@ $(function () {
 
     if (window.location.search.substring(1).indexOf("p=") === 0) {
         var prog = window.location.search.substring(3).split('&')[0];
-        $('#editor').text(LZString.decompressFromEncodedURIComponent(prog));
+        try {
+            prog = LZString.decompressFromEncodedURIComponent(prog);
+            $('#editor').text(prog);
+            // If there was a program link, keep local changes
+            appName = sha1(prog);
+        } catch (x) {
+            // Wasn't a program in the link...
+        }
     }
 
     var jsConfig = {
@@ -88,7 +95,20 @@ $(function () {
     var context = closure(editor, jsOutput);
 
     function run(code) {
-        context(code || editor.getSession().getValue());
+        try {
+            context(code || editor.getSession().getValue());
+        } catch (x) {
+            var trace = printStackTrace({e: x});
+            var lastLine = trace ? trace[0].match(/<anonymous>:(\d+):(\d+)/) : null;
+            if (lastLine && lastLine.length > 1) {
+                bootbox.dialog({
+                    message: 'There was an error!<br/><b>' + x.message + '</b><br/><br/>On Line #' + (lastLine[1] - 2),
+                    title: "Oops!"
+                });
+            } else {
+                bootbox.alert(x.message);
+            }
+        }
     }
 
     jsOutput.activate();
@@ -126,3 +146,43 @@ function closure(editor, output) {
         eval(transformed.code);
     });
 }
+
+
+function sha1(str1){
+    for (
+        var blockstart = 0,
+            i = 0,
+            W = [],
+            A, B, C, D, F, G,
+            H = [A=0x67452301, B=0xEFCDAB89, ~A, ~B, 0xC3D2E1F0],
+            word_array = [],
+            temp2,
+            s = unescape(encodeURI(str1)),
+            str_len = s.length;
+
+        i <= str_len;
+    ){
+        word_array[i >> 2] |= (s.charCodeAt(i)||128) << (8 * (3 - i++ % 4));
+    }
+    word_array[temp2 = ((str_len + 8) >> 6 << 4) + 15] = str_len << 3;
+
+    for (; blockstart <= temp2; blockstart += 16) {
+        A = H; i = 0;
+
+        for (; i < 80;
+               A = [[
+                   (G = ((s = A[0]) << 5 | s >>> 27) + A[4] + (W[i] = (i<16) ? ~~word_array[blockstart + i] : G << 1 | G >>> 31) + 1518500249) + ((B = A[1]) & (C = A[2]) | ~B & (D = A[3])),
+                   F = G + (B ^ C ^ D) + 341275144,
+                   G + (B & C | B & D | C & D) + 882459459,
+                   F + 1535694389
+               ][0|((i++) / 20)] | 0, s, B << 30 | B >>> 2, C, D]
+        ) {
+            G = W[i - 3] ^ W[i - 8] ^ W[i - 14] ^ W[i - 16];
+        }
+
+        for(i = 5; i; ) H[--i] = H[i] + A[i] | 0;
+    }
+
+    for(str1 = ''; i < 40; )str1 += (H[i >> 3] >> (7 - i++ % 8) * 4 & 15).toString(16);
+    return str1;
+};
