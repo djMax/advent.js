@@ -41,7 +41,7 @@ module.exports = function (router) {
 
     router.get('/fetch/:name', function (req, res) {
        JsDocument.findOne({name:req.params.name}, function (e, doc) {
-          res.json({content:doc.content});
+          res.json({content:doc?doc.content:null});
        });
     });
 
