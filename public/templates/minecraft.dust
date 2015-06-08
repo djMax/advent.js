@@ -1,5 +1,5 @@
 {>"layouts/master" /}
-{<title}Advent.js Javascript Playground{/title}
+{<title}Advent.js ScriptCraft Playground{/title}
 {<body}
     <div class="github-fork-ribbon-wrapper right-bottom">
         <div class="github-fork-ribbon">
@@ -8,24 +8,18 @@
     </div>
     <div class="container-fluid">
     <div class="row" id="editorRow">
-        <div class="col-sm-10" style="height:100%; padding-left: 0px;">
-            <div id="editor">// Your code goes here.{~n}async function helloWorld() {{~n}
-{~s}{~s}print('What is your name?');{~n}{~s}{~s}var player = await readLine();{~n}{~s}{~s}print(`Hello ${~lb}player{~rb}`);{~n}
+    <div class="col-sm-10" style="height:100%; padding-left: 0px;">
+    <div id="editor">// Your code goes here.{~n}function notABox() {{~n}
+{~s}{~s}box(blocks.diamond_ore, 2, 2, 2);{~n}
 }{~n}
-    helloWorld();
-            </div>
-        </div>
-        <div class="col-sm-2" style="height:100%; padding-left: 0px; padding-top: 10px">
-            <div class="checkbox text-center">
-                <label>
-                    <input type="checkbox" id="autoRun"> Run on change
-                </label>
-            </div>
-            <button id="run" class="btn btn-primary btn-block">Run (Control-R)</button>
-            <button id="clear" class="btn btn-primary btn-block">Clear Bottom Screen (Control-L)</button>
-            <button id="share" class="btn btn-primary btn-block">Share this Program</button>
-        </div>
+    notABox();
+</div>
+</div>
+    <div class="col-sm-2" style="height:100%; padding-left: 0px; padding-top: 10px">
+        <button id="save" class="btn btn-primary btn-block">Save this Program</button>
+        <button id="clear" class="btn btn-primary btn-block">Clear Bottom Screen (Control-L)</button>
     </div>
+</div>
 
     <div class="row" id="consoleRow">
         <div id="shell-panel">
@@ -43,7 +37,7 @@
             </div>
             <div class="modal-body">
                 <div style="width:645px;">
-                <textarea style="width:570px;height:300px;"></textarea>
+                    <textarea style="width:570px;height:300px;"></textarea>
                 </div>
             </div>
             <div class="modal-footer">
@@ -68,6 +62,6 @@
 <script src="/components/josh.js/js/killring.js" type="text/javascript"></script>
 <script src="/components/ace-builds/src-noconflict/ace.js" charset="utf-8"></script>
 <script type="text/javascript">
-    var page = 'consoleGame';
+    var page = 'minecraft';
 </script>
 {/script}

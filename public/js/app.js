@@ -1,7 +1,71 @@
 'use strict';
 
 var JsOutput = require('./jsOutput');
-$(function () {
+
+if (page === 'consoleGame') {
+    $(consoleGamePage);
+} else if (page === 'loginPage') {
+    $(loginPage);
+} else if (page === 'minecraft') {
+    $(minecraft);
+}
+
+function loginPage() {
+    $("#login button").click(function (e) {
+        e.preventDefault();
+        $.ajax({
+            url: "/login",
+            type: "POST",
+            contentType: "application/json;charset=utf-8",
+            data: JSON.stringify({
+                _csrf: _csrf,
+                username: $("input[name=username]").val(),
+                password: $("input[name=password]").val()
+            }),
+            success: function (response) {
+                if (response.error) {
+                    alert("Login failed! " + response.error);
+                } else {
+                    document.location = '/~' + response.profile.name;
+                }
+            },
+            error: function (e) {
+                alert("Login failed! " + e.message);
+            }
+        });
+    });
+}
+
+function minecraft() {
+    sizer();
+    $(window).resize(sizer);
+
+    var editor = ace.edit('editor');
+    editor.setTheme('ace/theme/monokai');
+    editor.getSession().setMode('ace/mode/javascript');
+
+    $('#save').on('click', function () {
+        $.ajax({
+            url: "/save",
+            type: "POST",
+            contentType: "application/json;charset=utf-8",
+            data: JSON.stringify({
+                _csrf: _csrf,
+                content: editor.getSession().getValue()
+            }),
+            success: function (response) {
+                if (response.error) {
+                    alert("Save failed! " + response.error);
+                }
+            },
+            error: function (e) {
+                alert("Save failed! " + e.message);
+            }
+        });
+    });
+}
+
+function consoleGamePage() {
 
     var appName = document.location.pathname.substring(1);
 
@@ -19,16 +83,11 @@ $(function () {
 
     var jsConfig = {
         onCommand: loggerInput,
-        console: console
+        console: console,
+        run: run
     };
     var jsOutput = new JsOutput(jsConfig);
     jsOutput._config = jsConfig;
-
-    function sizer() {
-        var totalHeight = $(window).height();
-        $('#editorRow').height(Math.floor(totalHeight / 2));
-        $('#consoleRow').height(Math.floor(totalHeight / 2));
-    }
 
     sizer();
     $(window).resize(sizer);
@@ -98,7 +157,11 @@ $(function () {
         try {
             context(code || editor.getSession().getValue());
         } catch (x) {
-            var trace = printStackTrace({e: x});
+            var trace;
+            console.log(x);
+            if (window["printStackTrace"]) {
+                trace = printStackTrace({e: x})
+            }
             var lastLine = trace ? trace[0].match(/<anonymous>:(\d+):(\d+)/) : null;
             if (lastLine && lastLine.length > 1) {
                 bootbox.dialog({
@@ -113,7 +176,7 @@ $(function () {
 
     jsOutput.activate();
     editor.focus();
-});
+}
 
 function loggerInput(text) {
     console.log('Unexpected input', text);
@@ -142,11 +205,16 @@ function closure(editor, output) {
     };
 
     return (function (code) {
-        var transformed = babel.transform(code, {stage: 0});
-        eval(transformed.code);
+        var transformed = babel.transform('var programFunction = async function () { ' + code + '}; programFunction();', {stage: 0});
+        eval( transformed.code);
     });
 }
 
+function sizer() {
+    var totalHeight = $(window).height();
+    $('#editorRow').height(Math.floor(totalHeight / 2));
+    $('#consoleRow').height(Math.floor(totalHeight / 2));
+}
 
 function sha1(str1){
     for (
@@ -185,4 +253,4 @@ function sha1(str1){
 
     for(str1 = ''; i < 40; )str1 += (H[i >> 3] >> (7 - i++ % 8) * 4 & 15).toString(16);
     return str1;
-};
+}

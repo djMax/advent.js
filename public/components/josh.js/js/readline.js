@@ -60,6 +60,7 @@ Josh.Version = "0.2.10";
     var _onCancel;
     var _onEOT;
     var _onClear;
+    var _onRun;
     var _onSearchStart;
     var _onSearchEnd;
     var _onSearchChange;
@@ -128,7 +129,7 @@ Josh.Version = "0.2.10";
         75: cmdKillToEOF,     // K
         89: cmdYank,          // Y
         76: cmdClear,         // L
-        82: cmdReverseSearch  // R
+        82: cmdRun            // R
       },
       meta: {
         8: cmdKillWordBackward, // Backspace
@@ -197,6 +198,9 @@ Josh.Version = "0.2.10";
       },
       onClear: function(completionHandler) {
         _onClear = completionHandler;
+      },
+      onRun: function (completionHandler) {
+        _onRun = completionHandler;
       },
       onEnter: function(enterHandler) {
         _onEnter = enterHandler;
@@ -529,6 +533,12 @@ Josh.Version = "0.2.10";
         refresh();
       }
     }
+
+      function cmdRun() {
+          if (_onRun) {
+              _onRun();
+          }
+      }
 
     function cmdReverseSearch() {
       if(!_inSearch) {

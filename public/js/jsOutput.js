@@ -48,6 +48,18 @@ var Josh = window["Josh"] || {};
                     }
                     return callback(self.bestMatch(arg, self.commands()))
                 }
+            },
+            input_search: {
+                exec: function (cmd, args, callback) {
+                    config.run();
+                }
+            },
+            clear: {
+                exec: function (cmd, args, callback) {
+                    $(id(_input_id)).parent().empty();
+                    self.refresh();
+                    callback('');
+                }
             }
         };
         var _line = {
@@ -60,6 +72,9 @@ var Josh = window["Josh"] || {};
         var _initializationHandler;
         var _initialized;
 
+        _readline.bind({'char': 'L', ctrlKey: true}, 'clear');
+        _readline.bind({'char': 'R', ctrlKey: true}, 'run');
+
         // public methods
         var self = {
             commands: commands,
@@ -68,7 +83,6 @@ var Josh = window["Josh"] || {};
                 help: _.template("<div><div><strong>Commands:</strong></div><% _.each(commands, function(cmd) { %><div>&nbsp;<%- cmd %></div><% }); %></div>"),
                 bad_command: _.template('<div><strong>Unrecognized command:&nbsp;</strong><%=cmd%></div>'),
                 input_cmd: _.template('<div id="<%- id %>" class="promptLine"><span class="prompt"></span><span class="input"><span class="left"/><span class="cursor"/><span class="right"/></span></div>'),
-                input_search: _.template('<div id="<%- id %>">(reverse-i-search)`<span class="searchterm"></span>\':&nbsp;<span class="input"><span class="left"/><span class="cursor"/><span class="right"/></span></div>'),
                 suggest: _.template("<div><% _.each(suggestions, function(suggestion) { %><div><%- suggestion %></div><% }); %></div>")
             },
             isActive: function() {
@@ -314,6 +328,7 @@ var Josh = window["Josh"] || {};
                 });
             });
         });
+        _readline.onRun(config.run);
         _readline.onSearchStart(function() {
             $(id(_input_id)).replaceWith(self.templates.input_search({id:_input_id}));
             _console.log('started search');
