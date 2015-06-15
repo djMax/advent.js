@@ -69,12 +69,12 @@ function minecraft() {
 }
 
 function game() {
-    var players = {}, myName, current, jsOutput;
+    var players = {}, myName, current, jsOutput, jsConfig;
 
     var socket = io();
     $('#login .usernameInput').focus();
     $('#yourNumber').hide();
-    
+
     function goGame() {
         socket.emit('player', {name: myName});
 
@@ -88,7 +88,7 @@ function game() {
                 return false;
             }
         };
-        var jsOutput = new JsOutput(jsConfig);
+        jsOutput = new JsOutput(jsConfig);
         jsOutput._config = jsConfig;
 
         var prompted = false;
