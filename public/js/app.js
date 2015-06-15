@@ -68,7 +68,7 @@ function minecraft() {
 }
 
 function game() {
-    var players = {}, myName, current, jsOutput, jsConfig;
+    var players = {}, myName, current, jsOutput, jsConfig, leftValue, rightValue, curOpFn;
 
     var socket = io();
     $('#login .usernameInput').focus();
@@ -152,6 +152,10 @@ function game() {
 
     socket.on('newGame', setupGame);
 
+    socket.on('win', function (d) {
+        alert(d.name + ' has won.');
+    });
+
     $('#op').click(function () {
         $('#opChoice').fadeIn();
     });
@@ -160,7 +164,25 @@ function game() {
         var op = $(this).text();
         $('#op').text(op);
         $('#opChoice').hide();
+        if (op === '+') {
+            curOpFn = function (x,y) { return x + y; };
+        } else if (op === '×') {
+            curOpFn = function (x,y) { return x * y; };
+        } else if (op === '-') {
+            curOpFn = function (x,y) { return x - y; };
+        }
+        checkResult();
     });
+
+    function checkResult() {
+        if (curOpFn && leftValue && rightValue && curOpFn(leftValue, rightValue) == current.target) {
+            socket.emit('win', {name:myName});
+            alert('YOU WIN');
+            $('#gameStart').show();
+        } else {
+
+        }
+    }
 
     $('#item1').click(function () {
         if (!current) {
@@ -168,7 +190,7 @@ function game() {
         }
         $('#t1Choice').html('');
         for (var pn in current.players) {
-            var k = $('<button/>').addClass('btn btn-lg').text(pn);
+            var k = $('<button/>').addClass('btn btn-lg').text(pn + ' ' + current.players[pn].number);
             $('#t1Choice').append(k);
             k.data('player', pn);
         }
@@ -176,6 +198,8 @@ function game() {
             var p = current.players[$(this).data('player')];
             $('#item1').text(p.number);
             $('#t1Choice').hide();
+            leftValue = p.number;
+            checkResult();
         });
 
         $('#t1Choice').fadeIn();
@@ -187,7 +211,7 @@ function game() {
         }
         $('#t2Choice').html('');
         for (var pn in current.players) {
-            var k = $('<button/>').addClass('btn btn-lg').text(pn);
+            var k = $('<button/>').addClass('btn btn-lg').text(pn + ' ' + current.players[pn].number);
             $('#t2Choice').append(k);
             k.data('player', pn);
         }
@@ -195,6 +219,8 @@ function game() {
             var p = current.players[$(this).data('player')];
             $('#item2').text(p.number);
             $('#t2Choice').hide();
+            rightValue = p.number;
+            checkResult();
         });
 
         $('#t2Choice').fadeIn();
@@ -422,8 +448,14 @@ function deal(players) {
         playerCount++;
     }
     console.log('dealing', playerCount);
+    var lastPlayer = null;
     for (var p in players) {
-        players[p].number = parseInt(Math.random() * 50) * 2;
+        if (lastPlayer) {
+            players[p].number = Math.abs(target - lastPlayer);
+        } else {
+            players[p].number = parseInt(Math.random() * 50) * 2;
+        }
+        lastPlayer = players[p].number;
     }
     return {
         target: target,

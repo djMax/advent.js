@@ -31,5 +31,8 @@ io.on('connection', function (socket) {
     });
     socket.on('newGame', function (d) {
         socket.broadcast.emit('newGame', d);
+    });
+    socket.on('win', function (d) {
+        socket.broadcast.emit('win', d);
     })
 });
