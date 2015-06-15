@@ -68,18 +68,45 @@ function minecraft() {
 }
 
 function game() {
-    var players = {}, myName, current;
+    var players = {}, myName, current, jsOutput;
 
     var socket = io();
     $('#login .usernameInput').focus();
     $('#yourNumber').hide();
+    
+    function goGame() {
+        socket.emit('player', {name: myName});
+
+        jsConfig = {
+            console: console,
+            onCommand: function (line) {
+                socket.emit('chat', {name: myName, text: line});
+                jsOutput.clearPrompt();
+                jsOutput.renderOutput(myName + ': ' + line, function () {
+                });
+                return false;
+            }
+        };
+        var jsOutput = new JsOutput(jsConfig);
+        jsOutput._config = jsConfig;
+
+        var prompted = false;
+        jsOutput.onNewPrompt(function (callback) {
+            if (!prompted) {
+                prompted = true;
+                return callback('Welcome to the game! Chat with other players here. Be respectful.<br/>> ');
+            }
+            callback('> ');
+        });
+
+        jsOutput.activate();
+    }
 
     if (window.localStorage.getItem('gameuser')) {
         myName = window.localStorage.getItem('gameuser');
         players[myName] = {name: myName};
-        socket.emit('player', {name: myName});
+        goGame();
         $('#login').hide();
-        jsOutput.activate();
     } else {
         $(window).keydown(function (event) {
             if (myName) {
@@ -95,9 +122,8 @@ function game() {
                 myName = $('#login .usernameInput').val();
                 socket.emit('player', {name: myName});
                 window.localStorage.setItem('gameuser', myName);
-                players[myName] = {name: myName};
+                goGame();
                 $('#login').fadeOut();
-                jsOutput.activate();
             }
         });
     }
@@ -189,28 +215,6 @@ function game() {
 
     consoleSizer();
     $(window).resize(consoleSizer);
-
-    var jsConfig = {
-        console: console,
-        onCommand: function (line) {
-            socket.emit('chat', {name: myName, text: line});
-            jsOutput.clearPrompt();
-            jsOutput.renderOutput(myName + ': ' + line, function () {
-            });
-            return false;
-        }
-    };
-    var jsOutput = new JsOutput(jsConfig);
-    jsOutput._config = jsConfig;
-
-    var prompted = false;
-    jsOutput.onNewPrompt(function (callback) {
-        if (!prompted) {
-            prompted = true;
-            return callback('Welcome to the game! Chat with other players here. Be respectful.<br/>> ');
-        }
-        callback('> ');
-    });
 
     socket.on('chat', function (data) {
         console.log('CHAT', data);
