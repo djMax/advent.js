@@ -100,6 +100,9 @@ var Josh = window["Josh"] || {};
                 _noEvents = false;
                 _readline.activate();
             },
+            clearPrompt: function () {
+                _line = {text: '', cursor: 0}
+            },
             clear: function () {
                 $(id(_input_id)).parent().empty();
                 self.refresh();
@@ -345,7 +348,7 @@ var Josh = window["Josh"] || {};
         });
         _readline.onEnter(function(cmdtext, callback) {
             _console.log("got command: " + cmdtext);
-            config.onCommand(cmdtext);
+            cmdtext = config.onCommand(cmdtext) === false ? '' : cmdtext;
             callback(cmdtext);
         });
         _readline.onCompletion(function(line, callback) {

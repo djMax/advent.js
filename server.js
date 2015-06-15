@@ -25,7 +25,11 @@ io.on('connection', function (socket) {
     socket.on('playerResponse', function (d) {
         socket.broadcast.emit('playerResponse', d);
     });
-    socket.on('begin', function (d) {
-        socket.broadcast.emit('begin', d);
+    socket.on('chat', function (d) {
+        console.log('GOT A CHAT');
+        socket.broadcast.emit('chat', d);
+    });
+    socket.on('newGame', function (d) {
+        socket.broadcast.emit('newGame', d);
     })
 });

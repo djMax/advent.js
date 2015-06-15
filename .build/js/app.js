@@ -69,17 +69,23 @@ function minecraft() {
 }
 
 function game() {
-    var players = {}, myName;
+    var players = {}, myName, current;
 
     var socket = io();
     $('#login .usernameInput').focus();
     $('#yourNumber').hide();
 
     if (window.localStorage.getItem('gameuser')) {
-        socket.emit('player', {name: (myName = window.localStorage.getItem('gameuser'))});
+        myName = window.localStorage.getItem('gameuser');
+        players[myName] = {name: myName};
+        socket.emit('player', {name: myName});
         $('#login').hide();
     } else {
         $(window).keydown(function (event) {
+            if (myName) {
+                return;
+            }
+
             // Auto-focus the current input when a key is typed
             if (!(event.ctrlKey || event.metaKey || event.altKey)) {
                 $('#login .usernameInput').focus();
@@ -89,6 +95,7 @@ function game() {
                 myName = $('#login .usernameInput').val();
                 socket.emit('player', {name: myName});
                 window.localStorage.setItem('gameuser', myName);
+                players[myName] = {name: myName};
                 $('#login').fadeOut();
             }
         });
@@ -101,24 +108,114 @@ function game() {
 
     socket.on('playerResponse', function (data) {
         if (!players[data.name]) {
+            jsOutput.renderOutput('New Player! ' + data.name, function () {
+            });
             players[data.name] = {};
             console.log('new player', data);
         }
     });
 
-    socket.on('begin', function (data) {
+    var setupGame = function (p) {
+        current = p;
+        $('#tgt').text(p.target);
         $('#gameStart').hide();
+        $('#yourNumber span').text(p.players[myName].number);
         $('#yourNumber').fadeIn();
-    });
+    };
+
+    socket.on('newGame', setupGame);
 
     $('#op').click(function () {
-       $('#opChoice').fadeIn();
+        $('#opChoice').fadeIn();
+    });
+
+    $('#opChoice button').click(function () {
+        var op = $(this).text();
+        $('#op').text(op);
+        $('#opChoice').hide();
+    });
+
+    $('#item1').click(function () {
+        if (!current) {
+            return;
+        }
+        $('#t1Choice').html('');
+        for (var pn in current.players) {
+            var k = $('<button/>').addClass('btn btn-lg').text(pn);
+            $('#t1Choice').append(k);
+            k.data('player', pn);
+        }
+        $('#t1Choice button').on('click', function () {
+            var p = current.players[$(this).data('player')];
+            $('#item1').text(p.number);
+            $('#t1Choice').hide();
+        });
+
+        $('#t1Choice').fadeIn();
+    });
+
+    $('#item2').click(function () {
+        if (!current) {
+            return;
+        }
+        $('#t2Choice').html('');
+        for (var pn in current.players) {
+            var k = $('<button/>').addClass('btn btn-lg').text(pn);
+            $('#t2Choice').append(k);
+            k.data('player', pn);
+        }
+        $('#t2Choice button').on('click', function () {
+            var p = current.players[$(this).data('player')];
+            $('#item2').text(p.number);
+            $('#t2Choice').hide();
+        });
+
+        $('#t2Choice').fadeIn();
     });
 
     $('#gameStart').on('click', function () {
-        socket.emit('begin', {});
+        var hand = deal(players);
+        socket.emit('newGame', hand);
+        setupGame(hand);
         $('#gameStart').hide();
         $('#yourNumber').fadeIn();
+    });
+
+    function consoleSizer() {
+        var totalHeight = $(window).height();
+        $('#consoleRow').height(totalHeight - 300);
+    }
+
+    consoleSizer();
+    $(window).resize(consoleSizer);
+
+    var jsConfig = {
+        console: console,
+        onCommand: function (line) {
+            socket.emit('chat', {name: myName, text: line});
+            jsOutput.clearPrompt();
+            jsOutput.renderOutput(myName + ': ' + line, function () {
+            });
+            return false;
+        }
+    };
+    var jsOutput = new JsOutput(jsConfig);
+    jsOutput._config = jsConfig;
+
+    var prompted = false;
+    jsOutput.onNewPrompt(function (callback) {
+        if (!prompted) {
+            prompted = true;
+            return callback('Welcome to the game! Chat with other players here. Be respectful.<br/>> ');
+        }
+        callback('> ');
+    });
+    jsOutput.activate();
+
+    socket.on('chat', function (data) {
+        console.log('CHAT', data);
+        jsOutput.renderOutput(data.name + ': ' + data.text, function () {
+        });
     });
 
 }
@@ -314,6 +411,22 @@ function sha1(str1) {
     return str1;
 }
 
+function deal(players) {
+    var target = parseInt(Math.random() * 50) * 2;
+    var playerCount = 0;
+    for (var p in players) {
+        playerCount++;
+    }
+    console.log('dealing', playerCount);
+    for (var p in players) {
+        players[p].number = parseInt(Math.random() * 50) * 2;
+    }
+    return {
+        target: target,
+        players: players
+    };
+}
+
 },{"./jsOutput":2}],2:[function(require,module,exports){
 /* ------------------------------------------------------------------------*
  * Copyright 2013-2014 Arne F. Claassen
@@ -416,6 +529,9 @@ var Josh = window["Josh"] || {};
                 _readline.setLine(_line);
                 _noEvents = false;
                 _readline.activate();
+            },
+            clearPrompt: function () {
+                _line = {text: '', cursor: 0}
             },
             clear: function () {
                 $(id(_input_id)).parent().empty();
@@ -662,7 +778,7 @@ var Josh = window["Josh"] || {};
         });
         _readline.onEnter(function(cmdtext, callback) {
             _console.log("got command: " + cmdtext);
-            config.onCommand(cmdtext);
+            cmdtext = config.onCommand(cmdtext) === false ? '' : cmdtext;
             callback(cmdtext);
         });
         _readline.onCompletion(function(line, callback) {
