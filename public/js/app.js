@@ -79,6 +79,7 @@ function game() {
         players[myName] = {name: myName};
         socket.emit('player', {name: myName});
         $('#login').hide();
+        jsOutput.activate();
     } else {
         $(window).keydown(function (event) {
             if (myName) {
@@ -96,6 +97,7 @@ function game() {
                 window.localStorage.setItem('gameuser', myName);
                 players[myName] = {name: myName};
                 $('#login').fadeOut();
+                jsOutput.activate();
             }
         });
     }
@@ -209,7 +211,6 @@ function game() {
         }
         callback('> ');
     });
-    jsOutput.activate();
 
     socket.on('chat', function (data) {
         console.log('CHAT', data);
