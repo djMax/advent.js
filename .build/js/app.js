@@ -9,6 +9,8 @@ if (page === 'consoleGame') {
     $(loginPage);
 } else if (page === 'minecraft') {
     $(minecraft);
+} else if (page === 'game') {
+    $(game);
 }
 
 function loginPage() {
@@ -64,6 +66,61 @@ function minecraft() {
             }
         });
     });
+}
+
+function game() {
+    var players = {}, myName;
+
+    var socket = io();
+    $('#login .usernameInput').focus();
+    $('#yourNumber').hide();
+
+    if (window.localStorage.getItem('gameuser')) {
+        socket.emit('player', {name: (myName = window.localStorage.getItem('gameuser'))});
+        $('#login').hide();
+    } else {
+        $(window).keydown(function (event) {
+            // Auto-focus the current input when a key is typed
+            if (!(event.ctrlKey || event.metaKey || event.altKey)) {
+                $('#login .usernameInput').focus();
+            }
+            // When the client hits ENTER on their keyboard
+            if (event.which === 13) {
+                myName = $('#login .usernameInput').val();
+                socket.emit('player', {name: myName});
+                window.localStorage.setItem('gameuser', myName);
+                $('#login').fadeOut();
+            }
+        });
+    }
+
+    socket.on('player', function (data) {
+        console.log('PLAYER', data);
+        socket.emit('playerResponse', {name: myName});
+    });
+
+    socket.on('playerResponse', function (data) {
+        if (!players[data.name]) {
+            players[data.name] = {};
+            console.log('new player', data);
+        }
+    });
+
+    socket.on('begin', function (data) {
+        $('#gameStart').hide();
+        $('#yourNumber').fadeIn();
+    });
+
+    $('#op').click(function () {
+       $('#opChoice').fadeIn();
+    });
+
+    $('#gameStart').on('click', function () {
+        socket.emit('begin', {});
+        $('#gameStart').hide();
+        $('#yourNumber').fadeIn();
+    });
+
 }
 
 function consoleGamePage() {
@@ -207,7 +264,7 @@ function closure(editor, output) {
 
     return (function (code) {
         var transformed = babel.transform('var programFunction = async function () { ' + code + '}; programFunction();', {stage: 0});
-        eval( transformed.code);
+        eval(transformed.code);
     });
 }
 
@@ -217,42 +274,43 @@ function sizer() {
     $('#consoleRow').height(Math.floor(totalHeight / 2));
 }
 
-function sha1(str1){
+function sha1(str1) {
     for (
         var blockstart = 0,
             i = 0,
             W = [],
             A, B, C, D, F, G,
-            H = [A=0x67452301, B=0xEFCDAB89, ~A, ~B, 0xC3D2E1F0],
+            H = [A = 0x67452301, B = 0xEFCDAB89, ~A, ~B, 0xC3D2E1F0],
             word_array = [],
             temp2,
             s = unescape(encodeURI(str1)),
             str_len = s.length;
 
         i <= str_len;
-    ){
-        word_array[i >> 2] |= (s.charCodeAt(i)||128) << (8 * (3 - i++ % 4));
+    ) {
+        word_array[i >> 2] |= (s.charCodeAt(i) || 128) << (8 * (3 - i++ % 4));
     }
     word_array[temp2 = ((str_len + 8) >> 6 << 4) + 15] = str_len << 3;
 
     for (; blockstart <= temp2; blockstart += 16) {
-        A = H; i = 0;
+        A = H;
+        i = 0;
 
         for (; i < 80;
                A = [[
-                   (G = ((s = A[0]) << 5 | s >>> 27) + A[4] + (W[i] = (i<16) ? ~~word_array[blockstart + i] : G << 1 | G >>> 31) + 1518500249) + ((B = A[1]) & (C = A[2]) | ~B & (D = A[3])),
+                   (G = ((s = A[0]) << 5 | s >>> 27) + A[4] + (W[i] = (i < 16) ? ~~word_array[blockstart + i] : G << 1 | G >>> 31) + 1518500249) + ((B = A[1]) & (C = A[2]) | ~B & (D = A[3])),
                    F = G + (B ^ C ^ D) + 341275144,
                    G + (B & C | B & D | C & D) + 882459459,
                    F + 1535694389
-               ][0|((i++) / 20)] | 0, s, B << 30 | B >>> 2, C, D]
+               ][0 | ((i++) / 20)] | 0, s, B << 30 | B >>> 2, C, D]
         ) {
             G = W[i - 3] ^ W[i - 8] ^ W[i - 14] ^ W[i - 16];
         }
 
-        for(i = 5; i; ) H[--i] = H[i] + A[i] | 0;
+        for (i = 5; i;) H[--i] = H[i] + A[i] | 0;
     }
 
-    for(str1 = ''; i < 40; )str1 += (H[i >> 3] >> (7 - i++ % 8) * 4 & 15).toString(16);
+    for (str1 = ''; i < 40;)str1 += (H[i >> 3] >> (7 - i++ % 8) * 4 & 15).toString(16);
     return str1;
 }
 
