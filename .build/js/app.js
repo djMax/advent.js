@@ -324,7 +324,9 @@ function consoleGamePage() {
             jsOutput.clear();
         }
     });
-    $('#run').on('click', function () {
+    $('#run').on('click', function (e) {
+        e.preventDefault();
+        this.blur();
         run();
     });
     $('#clear').on('click', function () {
@@ -388,9 +390,10 @@ function closure(editor, output) {
         return new Promise(function (resolve) {
             resolver = resolve;
         });
-    };
+    }, readline = readLine;
 
     return (function (code) {
+        console.trace('Running code');
         var transformed = babel.transform('var programFunction = async function () { ' + code + '}; programFunction();', {stage: 0});
         eval(transformed.code);
     });
@@ -748,7 +751,7 @@ var Josh = window["Josh"] || {};
         }
 
         function activate() {
-            _console.log("activating shell");
+            _console.trace("activating shell");
             if(!_view) {
                 _view = $(id(_shell_view_id));
             }
