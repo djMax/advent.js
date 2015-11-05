@@ -1,6 +1,7 @@
 'use strict';
 
-var JsOutput = require('./jsOutput');
+var JsOutput = require('./jsOutput'),
+    _jsListeners = [];
 
 if (page === 'consoleGame') {
     $(consoleGamePage);
@@ -165,18 +166,24 @@ function game() {
         $('#op').text(op);
         $('#opChoice').hide();
         if (op === '+') {
-            curOpFn = function (x,y) { return x + y; };
+            curOpFn = function (x, y) {
+                return x + y;
+            };
         } else if (op === '×') {
-            curOpFn = function (x,y) { return x * y; };
+            curOpFn = function (x, y) {
+                return x * y;
+            };
         } else if (op === '-') {
-            curOpFn = function (x,y) { return x - y; };
+            curOpFn = function (x, y) {
+                return x - y;
+            };
         }
         checkResult();
     });
 
     function checkResult() {
         if (curOpFn && leftValue && rightValue && curOpFn(leftValue, rightValue) == current.target) {
-            socket.emit('win', {name:myName});
+            socket.emit('win', {name: myName});
             alert('YOU WIN');
             $('#gameStart').show();
         } else {
@@ -252,6 +259,7 @@ function game() {
 
 function consoleGamePage() {
 
+    var socket = io();
     var appName = document.location.pathname.substring(1);
 
     if (window.location.search.substring(1).indexOf("p=") === 0) {
@@ -338,10 +346,22 @@ function consoleGamePage() {
         $('#urlModal').modal();
     });
 
-    var context = closure(editor, jsOutput);
+    var context = closure(socket, editor, jsOutput);
+
+    socket.on('chat', function (m) {
+        console.log('Got a message', m);
+       _jsListeners.forEach(function (fn) {
+           try {
+               fn(m);
+           } catch (x) {
+               console.log(x);
+           }
+       });
+    });
 
     function run(code) {
         try {
+            _jsListeners = [];
             context(code || editor.getSession().getValue());
         } catch (x) {
             var trace;
@@ -369,27 +389,32 @@ function loggerInput(text) {
     console.log('Unexpected input', text);
 }
 
-function closure(editor, output) {
+function closure(socket, editor, output) {
     var print = function (text) {
-        output.renderOutput(text, function () {
-        });
-    }, clear = function () {
-        output.clear();
-    }, readLine = function (callback) {
-        var resolver;
-        output._config.onCommand = function (line) {
-            setTimeout(function () {
-                resolver(line);
-            }, 0);
-            output._config.onCommand = loggerInput;
-            output.deactivate();
+            output.renderOutput(text, function () {
+            });
+        }, clear = function () {
+            output.clear();
+        }, readLine = function (callback) {
+            var resolver;
+            output._config.onCommand = function (line) {
+                setTimeout(function () {
+                    resolver(line);
+                }, 0);
+                output._config.onCommand = loggerInput;
+                output.deactivate();
+            };
+            editor.blur();
+            output.activate();
+            return new Promise(function (resolve) {
+                resolver = resolve;
+            });
+        }, readline = readLine,
+        send = function (message) {
+            socket.emit('chat', message);
+        }, on = function (e, fn) {
+            _jsListeners.push(fn);
         };
-        editor.blur();
-        output.activate();
-        return new Promise(function (resolve) {
-            resolver = resolve;
-        });
-    }, readline = readLine;
 
     return (function (code) {
         console.trace('Running code');
