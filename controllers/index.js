@@ -18,6 +18,10 @@ module.exports = function (router) {
        res.render('game');
     });
 
+    router.get('/scratchcraft', function (req, res) {
+       res.render('scratchcraft');
+    });
+
     router.post('/login', function (req, res) {
         ygg.auth({
             token: '4b8d9c75-dc26-4cb1-8b9d-253b43f1e6e8', //Optional. Client token.

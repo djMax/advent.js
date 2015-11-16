@@ -12,6 +12,8 @@ if (page === 'consoleGame') {
     $(minecraft);
 } else if (page === 'game') {
     $(game);
+} else if (page === 'scratchcraft') {
+    $(scratchcraft);
 }
 
 function loginPage() {
@@ -350,14 +352,30 @@ function consoleGamePage() {
     var context = closure(socket, editor, jsOutput);
 
     socket.on('chat', function (m) {
-        console.log('Got a message', m);
-       _jsListeners.forEach(function (fn) {
-           try {
-               fn(m);
-           } catch (x) {
-               console.log(x);
-           }
-       });
+        _jsListeners.forEach(function (fn) {
+            try {
+                fn(m);
+            } catch (x) {
+                console.log(x);
+            }
+        });
+    });
+
+    $('#copyprog').on('click', function () {
+        socket.emit('share', {
+            code: editor.getSession().getValue()
+        });
+    });
+
+    var shareProg;
+    socket.on('share', function (m) {
+        $('#getprog').fadeIn();
+        console.log(m);
+        shareProg = m.code;
+    });
+
+    $('#getprog').on('click', function () {
+        editor.getSession().setValue(shareProg);
     });
 
     function run(code) {
@@ -490,6 +508,34 @@ function deal(players) {
         target: target,
         players: players
     };
+}
+
+function scratchcraft() {
+    var blocklyArea = document.getElementById('blocklyArea');
+    var blocklyDiv = document.getElementById('blocklyDiv');
+    var workspace = Blockly.inject(blocklyDiv,
+        {
+            media: '/js/blockly/media/',
+            toolbox: document.getElementById('toolbox')
+        });
+    var blocklyResize = function (e) {
+        // Compute the absolute coordinates and dimensions of blocklyArea.
+        var element = blocklyArea;
+        var x = 0;
+        var y = 0;
+        do {
+            x += element.offsetLeft;
+            y += element.offsetTop;
+            element = element.offsetParent;
+        } while (element);
+        // Position blocklyDiv over blocklyArea.
+        blocklyDiv.style.left = x + 'px';
+        blocklyDiv.style.top = y + 'px';
+        blocklyDiv.style.width = blocklyArea.offsetWidth + 'px';
+        blocklyDiv.style.height = blocklyArea.offsetHeight + 'px';
+    };
+    window.addEventListener('resize', blocklyResize, false);
+    blocklyResize();
 }
 
 },{"./jsOutput":2}],2:[function(require,module,exports){

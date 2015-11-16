@@ -26,7 +26,6 @@ io.on('connection', function (socket) {
         socket.broadcast.emit('playerResponse', d);
     });
     socket.on('chat', function (d) {
-        console.log('GOT A CHAT');
         socket.broadcast.emit('chat', d);
     });
     socket.on('newGame', function (d) {
@@ -34,5 +33,8 @@ io.on('connection', function (socket) {
     });
     socket.on('win', function (d) {
         socket.broadcast.emit('win', d);
-    })
+    });
+    socket.on('share', function (d) {
+        socket.broadcast.emit('share', d);
+    });
 });

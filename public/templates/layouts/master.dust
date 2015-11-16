@@ -18,6 +18,7 @@
     <link rel="stylesheet" href="/css/app.css" />
 </head>
 <body>
+{+rawBody /}
 <div id="wrapper" class="content">
     {+body /}
 </div>
