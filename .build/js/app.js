@@ -2,7 +2,7 @@
 'use strict';
 
 var JsOutput = require('./jsOutput'),
-    _jsListeners = [];
+    _jsListeners = {};
 
 if (page === 'consoleGame') {
     $(consoleGamePage);
@@ -341,6 +341,9 @@ function consoleGamePage() {
     });
     $('#clear').on('click', function () {
         jsOutput.clear();
+        jsOutput.renderOutput('>', function () {
+
+        });
     });
     $('#share').on('click', function () {
         var url = window.location.href.split('?')[0];
@@ -352,9 +355,9 @@ function consoleGamePage() {
     var context = closure(socket, editor, jsOutput);
 
     socket.on('chat', function (m) {
-        _jsListeners.forEach(function (fn) {
+        _jsListeners[m.type].forEach(function (fn) {
             try {
-                fn(m);
+                fn(m.message, m.type);
             } catch (x) {
                 console.log(x);
             }
@@ -380,11 +383,10 @@ function consoleGamePage() {
 
     function run(code) {
         try {
-            _jsListeners = [];
+            _jsListeners = {};
             context(code || editor.getSession().getValue());
         } catch (x) {
             var trace;
-            console.log(x);
             if (window["printStackTrace"]) {
                 trace = printStackTrace({e: x})
             }
@@ -414,6 +416,9 @@ function closure(socket, editor, output) {
             });
         }, clear = function () {
             output.clear();
+            output.renderOutput('>', function () {
+
+            });
         }, readLine = function (callback) {
             var resolver;
             output._config.onCommand = function (line) {
@@ -429,10 +434,15 @@ function closure(socket, editor, output) {
                 resolver = resolve;
             });
         }, readline = readLine,
-        send = function (message) {
-            socket.emit('chat', message);
+        send = function (type, message) {
+            if (type && !message) {
+                message = type;
+                type = null;
+            }
+            socket.emit('chat', {type:type, message:message});
         }, on = function (e, fn) {
-            _jsListeners.push(fn);
+            _jsListeners[e] = _jsListeners[e] || [];
+            _jsListeners[e].push(fn);
         };
 
     return (function (code) {
