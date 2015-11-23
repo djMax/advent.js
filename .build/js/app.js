@@ -2,10 +2,13 @@
 'use strict';
 
 var JsOutput = require('./jsOutput'),
-    _jsListeners = {};
+    _jsListeners = {},
+    canvas;
 
 if (page === 'consoleGame') {
     $(consoleGamePage);
+} else if (page === 'canvas') {
+    $(canvasPage);
 } else if (page === 'loginPage') {
     $(loginPage);
 } else if (page === 'minecraft') {
@@ -406,8 +409,196 @@ function consoleGamePage() {
     editor.focus();
 }
 
+function canvasPage() {
+
+    var socket = io();
+    var appName = document.location.pathname.substring(1);
+
+    if (window.location.search.substring(1).indexOf("p=") === 0) {
+        var prog = window.location.search.substring(3).split('&')[0];
+        try {
+            prog = LZString.decompressFromEncodedURIComponent(prog);
+            $('#editor').text(prog);
+            // If there was a program link, keep local changes
+            appName = sha1(prog);
+        } catch (x) {
+            // Wasn't a program in the link...
+        }
+    }
+
+    canvas = $('#canvas')[0];
+
+    sizer();
+    $(window).resize(sizer);
+
+    if (window.localStorage.getItem('code' + appName)) {
+        $('#editor').text(window.localStorage.getItem('code' + appName));
+    }
+
+    var editor = ace.edit('editor');
+    editor.setTheme('ace/theme/monokai');
+    editor.getSession().setMode('ace/mode/javascript');
+
+    editor.on('change', function () {
+        window.localStorage.setItem('code' + appName, editor.getSession().getValue());
+        if ($('#autoRun').prop('checked')) {
+            try {
+                run();
+            } catch (x) {
+                console.log(x);
+            }
+        }
+    });
+
+    editor.on('focus', function () {
+    });
+
+    editor.commands.addCommand({
+        name: 'Run',
+        bindKey: 'Ctrl-R',
+        exec: function (editor) {
+            run();
+        }
+    });
+    editor.commands.addCommand({
+        name: 'Clear',
+        bindKey: 'Ctrl-L',
+        exec: function (editor) {
+            var canvasContext = canvas.getContext('2d');
+            canvasContext.clearRect(0, 0, canvas.width, canvas.height);
+        }
+    });
+    $('#run').on('click', function (e) {
+        e.preventDefault();
+        this.blur();
+        run();
+    });
+    $('#clear').on('click', function () {
+        var canvasContext = canvas.getContext('2d');
+        canvasContext.clearRect(0, 0, canvas.width, canvas.height);
+    });
+    $('#share').on('click', function () {
+        var url = window.location.href.split('?')[0];
+        var enc = LZString.compressToEncodedURIComponent(editor.getSession().getValue());
+        $('#urlModal textarea').val(url + '?p=' + enc);
+        $('#urlModal').modal();
+    });
+
+    var context = canvasClosure(socket, editor);
+
+    socket.on('chat', function (m) {
+        _jsListeners[m.type].forEach(function (fn) {
+            try {
+                fn(m.message, m.type);
+            } catch (x) {
+                console.log(x);
+            }
+        });
+    });
+
+    $('#copyprog').on('click', function () {
+        socket.emit('share', {
+            code: editor.getSession().getValue()
+        });
+    });
+
+    var shareProg;
+    socket.on('share', function (m) {
+        $('#getprog').fadeIn();
+        shareProg = m.code;
+    });
+
+    $('#getprog').on('click', function () {
+        editor.getSession().setValue(shareProg);
+    });
+
+    function run(code) {
+        try {
+            _jsListeners = {};
+            context(code || editor.getSession().getValue());
+        } catch (x) {
+            var trace;
+            if (window["printStackTrace"]) {
+                trace = printStackTrace({e: x})
+            }
+            var lastLine = trace ? trace[0].match(/<anonymous>:(\d+):(\d+)/) : null;
+            if (lastLine && lastLine.length > 1) {
+                bootbox.dialog({
+                    message: 'There was an error!<br/><b>' + x.message + '</b><br/><br/>On Line #' + (lastLine[1] - 2),
+                    title: "Oops!"
+                });
+            } else {
+                bootbox.alert(x.message);
+            }
+        }
+    }
+
+    editor.focus();
+}
+
 function loggerInput(text) {
     console.log('Unexpected input', text);
+}
+
+function canvasClosure(socket, editor) {
+    var red = '#FF0000', green = '#00FF00', blue = '#0000FF', white = '#FFFFFF', black = '#000',
+        line = function (c,x,y,w,h) {
+            var canvasContext = canvas.getContext('2d');
+            canvasContext.beginPath();
+            canvasContext.moveTo(x,y);
+            canvasContext.lineTo(x+w,y+h);
+            canvasContext.strokeStyle = c;
+            canvasContext.stroke();
+        }, clear = function () {
+            var canvasContext = canvas.getContext('2d');
+            canvasContext.clearRect(0, 0, canvas.width, canvas.height);
+        }, circle = function (color, centerX, centerY, radius) {
+            var canvasContext = canvas.getContext('2d');
+            canvasContext.beginPath();
+            canvasContext.arc(centerX, centerY, radius, 0, 2 * Math.PI, false);
+            canvasContext.fillStyle = color;
+            canvasContext.fill();
+            canvasContext.lineWidth = 5;
+            canvasContext.strokeStyle = color;
+            canvasContext.stroke();
+        }, fill = function (color) {
+            var canvasContext = canvas.getContext('2d');
+            canvasContext.beginPath();
+            canvasContext.rect(0, 0, canvas.width, canvas.height);
+            canvasContext.fillStyle = color;
+            canvasContext.fill();
+        }, rect = function (c,x,y,w,h) {
+            var canvasContext = canvas.getContext('2d');
+            canvasContext.beginPath();
+            canvasContext.rect(x,y,w,h);
+            canvasContext.fillStyle = c;
+            canvasContext.fill();
+            canvasContext.strokeStyle = c;
+            canvasContext.stroke();
+        }, print = function (color, x, y, message, font) {
+            var canvasContext = canvas.getContext('2d');
+            canvasContext.beginPath();
+            canvasContext.font = '40pt Calibri';
+            canvasContext.fillStyle = color || 'white';
+            canvasContext.fillText(message, x, y);
+        },
+        send = function (type, message) {
+            if (type && !message) {
+                message = type;
+                type = null;
+            }
+            socket.emit('chat', {type:type, message:message});
+        }, on = function (e, fn) {
+            _jsListeners[e] = _jsListeners[e] || [];
+            _jsListeners[e].push(fn);
+        };
+
+    return (function (code) {
+        console.trace('Running code');
+        var transformed = babel.transform('var programFunction = async function () { ' + code + '}; programFunction();', {stage: 0});
+        var width = canvas.width, height = canvas.height;
+        eval(transformed.code);
+    });
 }
 
 function closure(socket, editor, output) {
@@ -456,6 +647,10 @@ function sizer() {
     var totalHeight = $(window).height();
     $('#editorRow').height(Math.floor(totalHeight / 2));
     $('#consoleRow').height(Math.floor(totalHeight / 2));
+    if (canvas) {
+        canvas.width = $('#canvas').width();
+        canvas.height = $('#canvas').height();
+    }
 }
 
 function sha1(str1) {

@@ -10,6 +10,10 @@ module.exports = function (router) {
         res.render('index');
     });
 
+    router.get('/draw', function (req, res) {
+        res.render('canvas');
+    });
+
     router.get('/login', function (req, res) {
         res.render('login');
     });
