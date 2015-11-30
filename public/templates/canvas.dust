@@ -9,7 +9,7 @@
     <div class="container-fluid">
     <div class="row" id="editorRow">
     <div class="col-sm-10" style="height:100%; padding-left: 0px;">
-    <div id="editor">// Your code goes here.{~n}fill(white){~n}line(red, 0,0,width,height);{~n}circle(green, 20, 20, 50);{~n}print('Hello World!', 50, 50, green);
+    <div id="editor">// Your code goes here.{~n}fill('white'){~n}line('red', 0,0,width,height);{~n}circle('green', 20, 20, 50);{~n}print('green', 50, 50, 'Hello World!');
 </div>
 </div>
     <div class="col-sm-2" style="height:100%; padding-left: 0px; padding-top: 10px">
@@ -63,6 +63,7 @@
 <script src="/js/browser-polyfill.js" type="text/javascript"></script>
 <script src="/js/browser.js" type="text/javascript"></script>
 <script src="/components/ace-builds/src-noconflict/ace.js" charset="utf-8"></script>
+<script src="/components/ace-builds/src-noconflict/ext-language_tools.js" charset="utf-8"></script>
 <script src="/socket.io/socket.io.js"></script>
 <script type="text/javascript">
     var page = 'canvas';

@@ -61,6 +61,7 @@
 <script src="/components/josh.js/js/history.js" type="text/javascript"></script>
 <script src="/components/josh.js/js/killring.js" type="text/javascript"></script>
 <script src="/components/ace-builds/src-noconflict/ace.js" charset="utf-8"></script>
+<script src="/components/ace-builds/src-noconflict/ext-language_tools.js" charset="utf-8"></script>
 <script type="text/javascript">
     var page = 'minecraft';
 </script>

@@ -48,9 +48,13 @@ function minecraft() {
     sizer();
     $(window).resize(sizer);
 
+    var tools = ace.require("ace/ext/language_tools");
     var editor = ace.edit('editor');
     editor.setTheme('ace/theme/monokai');
     editor.getSession().setMode('ace/mode/javascript');
+    editor.setOptions({
+        enableBasicAutocompletion: true
+    });
 
     $('#save').on('click', function () {
         $.ajax({
@@ -303,9 +307,16 @@ function consoleGamePage() {
         $('#editor').text(window.localStorage.getItem('code' + appName));
     }
 
+    ace.require("ace/ext/language_tools");
     var editor = ace.edit('editor');
     editor.setTheme('ace/theme/monokai');
     editor.getSession().setMode('ace/mode/javascript');
+    editor.setOptions({
+        enableSnippets: true,
+        enableLiveAutocompletion: true,
+        enableBasicAutocompletion: true
+    });
+    consoleCompletes(ace.require("ace/snippets").snippetManager);
 
     editor.on('change', function () {
         window.localStorage.setItem('code' + appName, editor.getSession().getValue());
@@ -434,9 +445,16 @@ function canvasPage() {
         $('#editor').text(window.localStorage.getItem('code' + appName));
     }
 
+    ace.require("ace/ext/language_tools");
     var editor = ace.edit('editor');
     editor.setTheme('ace/theme/monokai');
     editor.getSession().setMode('ace/mode/javascript');
+    editor.setOptions({
+        enableSnippets: true,
+        enableLiveAutocompletion: true,
+        enableBasicAutocompletion: true
+    });
+    canvasCompletes(ace.require("ace/snippets").snippetManager);
 
     editor.on('change', function () {
         window.localStorage.setItem('code' + appName, editor.getSession().getValue());
@@ -541,22 +559,26 @@ function loggerInput(text) {
 
 function canvasClosure(socket, editor) {
     var red = '#FF0000', green = '#00FF00', blue = '#0000FF', white = '#FFFFFF', black = '#000',
-        line = function (c,x,y,w,h) {
+        filled = true,
+        empty = false,
+        line = function (c, x, y, w, h) {
             var canvasContext = canvas.getContext('2d');
             canvasContext.beginPath();
-            canvasContext.moveTo(x,y);
-            canvasContext.lineTo(x+w,y+h);
+            canvasContext.moveTo(x, y);
+            canvasContext.lineTo(x + w, y + h);
             canvasContext.strokeStyle = c;
             canvasContext.stroke();
         }, clear = function () {
             var canvasContext = canvas.getContext('2d');
             canvasContext.clearRect(0, 0, canvas.width, canvas.height);
-        }, circle = function (color, centerX, centerY, radius) {
+        }, circle = function (color, centerX, centerY, radius, f) {
             var canvasContext = canvas.getContext('2d');
             canvasContext.beginPath();
             canvasContext.arc(centerX, centerY, radius, 0, 2 * Math.PI, false);
-            canvasContext.fillStyle = color;
-            canvasContext.fill();
+            if (f) {
+                canvasContext.fillStyle = color;
+                canvasContext.fill();
+            }
             canvasContext.lineWidth = 5;
             canvasContext.strokeStyle = color;
             canvasContext.stroke();
@@ -566,12 +588,14 @@ function canvasClosure(socket, editor) {
             canvasContext.rect(0, 0, canvas.width, canvas.height);
             canvasContext.fillStyle = color;
             canvasContext.fill();
-        }, rect = function (c,x,y,w,h) {
+        }, rect = function (c, x, y, w, h, f) {
             var canvasContext = canvas.getContext('2d');
             canvasContext.beginPath();
-            canvasContext.rect(x,y,w,h);
-            canvasContext.fillStyle = c;
-            canvasContext.fill();
+            canvasContext.rect(x, y, w, h);
+            if (f) {
+                canvasContext.fillStyle = c;
+                canvasContext.fill();
+            }
             canvasContext.strokeStyle = c;
             canvasContext.stroke();
         }, print = function (color, x, y, message, font) {
@@ -586,7 +610,7 @@ function canvasClosure(socket, editor) {
                 message = type;
                 type = null;
             }
-            socket.emit('chat', {type:type, message:message});
+            socket.emit('chat', {type: type, message: message});
         }, on = function (e, fn) {
             _jsListeners[e] = _jsListeners[e] || [];
             _jsListeners[e].push(fn);
@@ -609,7 +633,10 @@ function closure(socket, editor, output) {
             output.renderOutput('>', function () {
 
             });
-        }, readLine = function (callback) {
+        }, readLine = function (message) {
+            if (message) {
+                print(message);
+            }
             var resolver;
             output._config.onCommand = function (line) {
                 setTimeout(function () {
@@ -629,7 +656,7 @@ function closure(socket, editor, output) {
                 message = type;
                 type = null;
             }
-            socket.emit('chat', {type:type, message:message});
+            socket.emit('chat', {type: type, message: message});
         }, on = function (e, fn) {
             _jsListeners[e] = _jsListeners[e] || [];
             _jsListeners[e].push(fn);
@@ -740,4 +767,86 @@ function scratchcraft() {
     };
     window.addEventListener('resize', blocklyResize, false);
     blocklyResize();
+}
+
+
+function consoleCompletes(snips) {
+
+    snips.register([{
+        tabTrigger: 'pr',
+        name: 'print',
+        content: 'print(\'${1:message}\');',
+        docHTML: '<b>Print a message to the bottom screen.</b><hr/>print("Hello World");<br/>print("The value is " + aVariable);'
+    },{
+        tabTrigger: 're',
+        name: 'readLine',
+        content: 'var ${1:answer} = await readLine(\'${2:question}\');',
+        docHTML: '<b>Read a Line of Text</b><br/>Read a line of text from the user and wait until they hit "Return." Leave the result in <i>answer</i>.<hr/>var ${1:answer} = await readLine(\'${2:question}\');'
+    },{
+        tabTrigger: 'cl',
+        name: 'clear',
+        content: 'clear();',
+        caption: 'Clear the screen',
+        docHTML: '<b>Clear the screen</b><hr/>clear();'
+    }]);
+
+    var basicSnippets = ['for', 'fun', 'wh', 'if', 'setTimeout'];
+    var register = snips.register;
+    snips.register = function (snippets, scope) {
+        register.call(snips, snippets.filter(function (s) {
+            if (basicSnippets.indexOf(s.tabTrigger) >= 0) {
+                return true;
+            }
+            console.log('Ignoring snippet', s.tabTrigger, scope, s);
+            return false;
+        }), scope);
+    }
+}
+
+
+function canvasCompletes(snips) {
+
+    snips.register([{
+        tabTrigger: 'pr',
+        name: 'print',
+        content: 'print(\'${1:color}\', ${2:startX}, ${3:startY}, \'${4:message}\');',
+        docHTML: '<b>Draw Text</b><br/>Draw message at startX,startY.<hr/>print("red", 0, 0, \'Hello World!\');'
+    },{
+        tabTrigger: 'ci',
+        name: 'circle',
+        content: 'circle(\'${1:color}\', ${2:centerX}, ${3:centerY}, ${4:radius}, ${5:filled});',
+        docHTML: '<b>Draw a Circle</b><br/>Draw a circle centered at centerX,centerY with a radius.<br/>If filled is <i>true</i> then fill the rectangle with the color.<hr/>circle("red", 100, 100, 50, true);'
+    },{
+        tabTrigger: 'fi',
+        name: 'fill',
+        content: 'fill(\'${1:color}\');',
+        docHTML: '<b>Fill the Screen With Color</b><hr/>fill("white");'
+    },{
+        tabTrigger: 'li',
+        name: 'line',
+        content: 'line(\'${1:color}\', ${2:startX}, ${3:startY}, ${4:width}, ${5:height});',
+        docHTML: '<b>Draw a Line</b><br/>Draw a line starting at startX,startY and ending at startX+width,startY+height<hr/>line("red", 0, 0, 100, 100);'
+    },{
+        tabTrigger: 're',
+        name: 'rect',
+        content: 'rect(\'${1:color}\', ${2:startX}, ${3:startY}, ${4:width}, ${5:height}, ${6:filled});',
+        docHTML: '<b>Draw a Rectangle</b><br/>Draw a rectangle from startX,startY and ending at startX+width,startY+height.<br/>If filled is <i>true</i> then fill the rectangle with the color.<hr/>rect("red", 0, 0, 100, 100, true);'
+    }, {
+        tabTrigger: 'cl',
+        name: 'clear',
+        content: 'clear();',
+        caption: 'Clear the canvas'
+    }]);
+
+    var basicSnippets = ['for', 'fun', 'wh', 'if', 'setTimeout'];
+    var register = snips.register;
+    snips.register = function (snippets, scope) {
+        register.call(snips, snippets.filter(function (s) {
+            if (basicSnippets.indexOf(s.tabTrigger) >= 0) {
+                return true;
+            }
+            console.log('Ignoring snippet', s.tabTrigger, scope, s);
+            return false;
+        }), scope);
+    }
 }
