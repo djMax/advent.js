@@ -629,7 +629,10 @@ function closure(socket, editor, output) {
     var random = function (high) {
             return Math.floor(Math.random() * high) + 1;
         }, addLetter = function (c, v) {
-            return String.fromCharCode((c.charCodeAt(0) + v.charCodeAt(0)) % 256);
+            if (typeof v === 'string') {
+                v = v.charCodeAt(0);
+            }
+            return String.fromCharCode((c.charCodeAt(0) + v) % 256);
         },
         addletter = addLetter,
         print = function (text) {
