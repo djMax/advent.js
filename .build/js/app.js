@@ -626,7 +626,13 @@ function canvasClosure(socket, editor) {
 }
 
 function closure(socket, editor, output) {
-    var print = function (text) {
+    var random = function (high) {
+            return Math.floor(Math.random() * high) + 1;
+        }, addLetter = function (c, v) {
+            return String.fromCharCode((c.charCodeAt(0) + v.charCodeAt(0)) % 256);
+        },
+        addletter = addLetter,
+        print = function (text) {
             output.renderOutput(text, function () {
             });
         }, clear = function () {
@@ -778,17 +784,26 @@ function consoleCompletes(snips) {
         name: 'print',
         content: 'print(\'${1:message}\');',
         docHTML: '<b>Print a message to the bottom screen.</b><hr/>print("Hello World");<br/>print("The value is " + aVariable);'
-    },{
+    }, {
         tabTrigger: 're',
         name: 'readLine',
         content: 'var ${1:answer} = await readLine(\'${2:question}\');',
         docHTML: '<b>Read a Line of Text</b><br/>Read a line of text from the user and wait until they hit "Return." Leave the result in <i>answer</i>.<hr/>var ${1:answer} = await readLine(\'${2:question}\');'
-    },{
+    }, {
         tabTrigger: 'cl',
         name: 'clear',
         content: 'clear();',
-        caption: 'Clear the screen',
         docHTML: '<b>Clear the screen</b><hr/>clear();'
+    }, {
+        tabTrigger: 'ra',
+        name: 'random',
+        content: 'random(${1:maximum});',
+        docHTML: '<b>Choose a random number betweeen 1 and <i>maximum</i></b><hr/>random(100);'
+    }, {
+        tabTrigger: 'addl',
+        name: 'addLetter',
+        content: 'addLetter(${1:base},${2:add})',
+        docHTML: '<b>Add one letter to another</b><hr/>addLetter(\"a\",\"z\");'
     }]);
 
     var basicSnippets = ['for', 'fun', 'wh', 'if', 'setTimeout'];
@@ -812,22 +827,22 @@ function canvasCompletes(snips) {
         name: 'print',
         content: 'print(\'${1:color}\', ${2:startX}, ${3:startY}, \'${4:message}\');',
         docHTML: '<b>Draw Text</b><br/>Draw message at startX,startY.<hr/>print("red", 0, 0, \'Hello World!\');'
-    },{
+    }, {
         tabTrigger: 'ci',
         name: 'circle',
         content: 'circle(\'${1:color}\', ${2:centerX}, ${3:centerY}, ${4:radius}, ${5:filled});',
         docHTML: '<b>Draw a Circle</b><br/>Draw a circle centered at centerX,centerY with a radius.<br/>If filled is <i>true</i> then fill the rectangle with the color.<hr/>circle("red", 100, 100, 50, true);'
-    },{
+    }, {
         tabTrigger: 'fi',
         name: 'fill',
         content: 'fill(\'${1:color}\');',
         docHTML: '<b>Fill the Screen With Color</b><hr/>fill("white");'
-    },{
+    }, {
         tabTrigger: 'li',
         name: 'line',
         content: 'line(\'${1:color}\', ${2:startX}, ${3:startY}, ${4:width}, ${5:height});',
         docHTML: '<b>Draw a Line</b><br/>Draw a line starting at startX,startY and ending at startX+width,startY+height<hr/>line("red", 0, 0, 100, 100);'
-    },{
+    }, {
         tabTrigger: 're',
         name: 'rect',
         content: 'rect(\'${1:color}\', ${2:startX}, ${3:startY}, ${4:width}, ${5:height}, ${6:filled});',
