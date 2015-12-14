@@ -19,22 +19,23 @@ server.on('listening', function () {
 });
 
 io.on('connection', function (socket) {
+    console.log('Connected!', socket.id);
     socket.on('player', function (d) {
-        socket.broadcast.emit('player', d);
+        socket.broadcast.emit('player', { content: d, source: socket.id });
     });
     socket.on('playerResponse', function (d) {
-        socket.broadcast.emit('playerResponse', d);
+        socket.broadcast.emit('playerResponse', { content: d, source: socket.id });
     });
     socket.on('chat', function (d) {
-        socket.broadcast.emit('chat', d);
+        socket.broadcast.emit('chat', { content: d, source: socket.id });
     });
     socket.on('newGame', function (d) {
-        socket.broadcast.emit('newGame', d);
+        socket.broadcast.emit('newGame', { content: d, source: socket.id });
     });
     socket.on('win', function (d) {
-        socket.broadcast.emit('win', d);
+        socket.broadcast.emit('win', { content: d, source: socket.id });
     });
     socket.on('share', function (d) {
-        socket.broadcast.emit('share', d);
+        socket.broadcast.emit('share', { content: d, source: socket.id });
     });
 });

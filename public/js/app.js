@@ -2,7 +2,8 @@
 
 var JsOutput = require('./jsOutput'),
     _jsListeners = {},
-    canvas;
+    canvas,
+    socket;
 
 if (page === 'consoleGame') {
     $(consoleGamePage);
@@ -80,7 +81,7 @@ function minecraft() {
 function game() {
     var players = {}, myName, current, jsOutput, jsConfig, leftValue, rightValue, curOpFn;
 
-    var socket = io();
+    socket = io();
     $('#login .usernameInput').focus();
     $('#yourNumber').hide();
 
@@ -268,7 +269,7 @@ function game() {
 
 function consoleGamePage() {
 
-    var socket = io();
+    socket = io();
     var appName = document.location.pathname.substring(1);
 
     if (window.location.search.substring(1).indexOf("p=") === 0) {
@@ -368,26 +369,32 @@ function consoleGamePage() {
     var context = closure(socket, editor, jsOutput);
 
     socket.on('chat', function (m) {
-        _jsListeners[m.type].forEach(function (fn) {
-            try {
-                fn(m.message, m.type);
-            } catch (x) {
-                console.log(x);
-            }
-        });
+        if (_jsListeners[m.content.type]) {
+            _jsListeners[m.content.type].forEach(function (fn) {
+                try {
+                    fn(m.content.message, m.source, m.content.type);
+                } catch (x) {
+                    console.log(x);
+                }
+            });
+        } else {
+            console.log('Unhandled message', m);
+        }
     });
 
     $('#copyprog').on('click', function () {
         socket.emit('share', {
-            code: editor.getSession().getValue()
+            code: editor.getSession().getValue(),
+            type: 'console'
         });
     });
 
     var shareProg;
     socket.on('share', function (m) {
-        $('#getprog').fadeIn();
-        console.log(m);
-        shareProg = m.code;
+        if (m.content.type === 'console') {
+            $('#getprog').fadeIn();
+            shareProg = m.content.code;
+        }
     });
 
     $('#getprog').on('click', function () {
@@ -421,7 +428,7 @@ function consoleGamePage() {
 
 function canvasPage() {
 
-    var socket = io();
+    socket = io();
     var appName = document.location.pathname.substring(1);
 
     if (window.location.search.substring(1).indexOf("p=") === 0) {
@@ -504,25 +511,30 @@ function canvasPage() {
     var context = canvasClosure(socket, editor);
 
     socket.on('chat', function (m) {
-        _jsListeners[m.type].forEach(function (fn) {
-            try {
-                fn(m.message, m.type);
-            } catch (x) {
-                console.log(x);
-            }
-        });
+        if (_jsListeners[m.content.type]) {
+            _jsListeners[m.content.type].forEach(function (fn) {
+                try {
+                    fn(m.content.message, m.source, m.content.type);
+                } catch (x) {
+                    console.log(x);
+                }
+            });
+        }
     });
 
     $('#copyprog').on('click', function () {
         socket.emit('share', {
-            code: editor.getSession().getValue()
+            code: editor.getSession().getValue(),
+            type: 'canvas'
         });
     });
 
     var shareProg;
     socket.on('share', function (m) {
-        $('#getprog').fadeIn();
-        shareProg = m.code;
+        if (m.content.type === 'canvas') {
+            $('#getprog').fadeIn();
+            shareProg = m.content.code;
+        }
     });
 
     $('#getprog').on('click', function () {
@@ -592,7 +604,7 @@ function canvasClosure(socket, editor) {
             var canvasContext = canvas.getContext('2d');
             canvasContext.beginPath();
             canvasContext.rect(x, y, w, h);
-            if (f) {
+            if (f || f === undefined) {
                 canvasContext.fillStyle = c;
                 canvasContext.fill();
             }
@@ -617,6 +629,7 @@ function canvasClosure(socket, editor) {
         };
 
     return (function (code) {
+        var me = socket.id;
         console.trace('Running code');
         var transformed = babel.transform('var programFunction = async function () { ' + code + '}; programFunction();', {stage: 0});
         var width = canvas.width, height = canvas.height;
@@ -672,6 +685,7 @@ function closure(socket, editor, output) {
         };
 
     return (function (code) {
+        var me = socket.id;
         console.trace('Running code');
         var transformed = babel.transform('var programFunction = async function () { ' + code + '}; programFunction();', {stage: 0});
         eval(transformed.code);
