@@ -13,11 +13,16 @@
 </div>
 </div>
     <div class="col-sm-2" style="height:100%; padding-left: 0px; padding-top: 10px">
-        <button id="run" class="btn btn-primary btn-block">Run (Control-R)</button>
-        <button id="clear" class="btn btn-primary btn-block">Clear Bottom Screen (Control-L)</button>
-        <button id="share" class="btn btn-primary btn-block">Share this Program</button>
-        <button id="copyprog" class="btn btn-secondary btn-block">Copy to Others</button>
-        <button id="getprog" class="btn btn-secondary btn-block" style="display:none;">Receive</button>
+        <div id="slimButtons" style="display:none;">
+            <button id="showCode" class="btn btn-primary btn-block">Stop</button>
+        </div>
+        <div id="fatButtons">
+            <button id="run" class="btn btn-primary btn-block">Run (Control-R)</button>
+            <button id="clear" class="btn btn-primary btn-block">Clear Bottom Screen (Control-L)</button>
+            <button id="share" class="btn btn-primary btn-block">Share this Program</button>
+            <button id="copyprog" class="btn btn-secondary btn-block">Copy to Others</button>
+            <button id="getprog" class="btn btn-secondary btn-block" style="display:none;">Receive</button>
+        </div>
     </div>
 </div>
 

@@ -3,7 +3,9 @@
 var JsOutput = require('./jsOutput'),
     _jsListeners = {},
     canvas,
-    socket;
+    socket,
+    slimSize = false;
+;
 
 if (page === 'consoleGame') {
     $(consoleGamePage);
@@ -447,6 +449,12 @@ function canvasPage() {
 
     sizer();
     $(window).resize(sizer);
+    $('#showCode').click(function () {
+        slimSize = false;
+        $('#slimButtons').hide();
+        $('#fatButtons').show();
+        sizer();
+    });
 
     if (window.localStorage.getItem('code' + appName)) {
         $('#editor').text(window.localStorage.getItem('code' + appName));
@@ -494,7 +502,11 @@ function canvasPage() {
     });
     $('#run').on('click', function (e) {
         e.preventDefault();
+        $('#fatButtons').hide();
+        $('#slimButtons').show();
+        slimSize = true;
         this.blur();
+        sizer();
         run();
     });
     $('#clear').on('click', function () {
@@ -527,6 +539,31 @@ function canvasPage() {
             code: editor.getSession().getValue(),
             type: 'canvas'
         });
+    });
+
+    var callKeyFn = function (name, code) {
+        if (_jsListeners[name]) {
+            _jsListeners[name].forEach(function (fn) {
+                try {
+                    fn(code);
+                } catch (x) {
+                    console.log(x);
+                }
+            });
+        }
+    };
+
+    // Bind keyup messages to the user-land "on" function. The namespace is shared with sockets, which is weird of course
+    $('body').on('keyup', function (event) {
+        if (event.target.tagName === 'TEXTAREA') {
+            return;
+        }
+        event.preventDefault();
+        var key = event.keyCode;
+        callKeyFn('key', key);
+        if (key >= 37 && key <= 40) {
+            callKeyFn(['left','up','right','down'][key - 37], key);
+        }
     });
 
     var shareProg;
@@ -694,8 +731,13 @@ function closure(socket, editor, output) {
 
 function sizer() {
     var totalHeight = $(window).height();
-    $('#editorRow').height(Math.floor(totalHeight / 2));
-    $('#consoleRow').height(Math.floor(totalHeight / 2));
+    if (slimSize) {
+        $('#editorRow').height(50);
+        $('#consoleRow').height(totalHeight - 50);
+    } else {
+        $('#editorRow').height(Math.floor(totalHeight / 2));
+        $('#consoleRow').height(Math.floor(totalHeight / 2));
+    }
     if (canvas) {
         canvas.width = $('#canvas').width();
         canvas.height = $('#canvas').height();
@@ -829,7 +871,6 @@ function consoleCompletes(snips) {
             if (basicSnippets.indexOf(s.tabTrigger) >= 0) {
                 return true;
             }
-            console.log('Ignoring snippet', s.tabTrigger, scope, s);
             return false;
         }), scope);
     }
