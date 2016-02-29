@@ -273,6 +273,7 @@ function game() {
 function consoleGamePage() {
 
     socket = io();
+    doWit();
     var appName = document.location.pathname.substring(1);
 
     if (window.location.search.substring(1).indexOf("p=") === 0) {
@@ -922,6 +923,69 @@ function canvasCompletes(snips) {
             console.log('Ignoring snippet', s.tabTrigger, scope, s);
             return false;
         }), scope);
+    }
+}
+
+
+function doWit() {
+    var mic = new Wit.Microphone(document.getElementById("microphone"));
+
+    mic.onready = function () {
+        console.log("Microphone is ready to record");
+    };
+    mic.onaudiostart = function () {
+        console.log("Recording started");
+    };
+    mic.onaudioend = function () {
+        console.log("Recording stopped, processing started");
+    };
+    mic.onresult = function (intent, entities) {
+        console.log(intent,entities);
+        var r = kv("intent", intent);
+
+        for (var k in entities) {
+            var e = entities[k];
+
+            if (!(e instanceof Array)) {
+                r += kv(k, e.value);
+            } else {
+                for (var i = 0; i < e.length; i++) {
+                    r += kv(k, e[i].value);
+                }
+            }
+        }
+
+        if (_jsListeners[intent]) {
+            _jsListeners[intent].forEach(function (fn) {
+                try {
+                    fn(entities, intent);
+                } catch (x) {
+                    console.log(x);
+                }
+            });
+        } else {
+            console.log('Unhandled message', intent);
+        }
+    };
+    mic.onerror = function (err) {
+        console.log("Error: " + err);
+    };
+    mic.onconnecting = function () {
+        console.log("Microphone is connecting");
+    };
+    mic.ondisconnected = function () {
+        console.log("Microphone is not connected");
+    };
+
+    mic.connect("K5KE5YMK2JV5W3LY4MZPRPLS57K62LKV");
+    // mic.start();
+    // mic.stop();
+
+    function kv (k, v) {
+        if (toString.call(v) !== "[object String]") {
+            v = JSON.stringify(v);
+        }
+        return k + "=" + v + "\n";
     }
 }
 

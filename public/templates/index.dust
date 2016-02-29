@@ -21,6 +21,7 @@
             <button id="share" class="btn btn-primary btn-block">Share this Program</button>
             <button id="copyprog" class="btn btn-secondary btn-block">Copy to Others</button>
             <button id="getprog" class="btn btn-secondary btn-block" style="display:none;">Receive</button>
+            <center><div id="microphone"></div></center>
         </div>
     </div>
 
@@ -66,6 +67,7 @@
 <script src="/components/ace-builds/src-noconflict/ace.js" charset="utf-8"></script>
 <script src="/components/ace-builds/src-noconflict/ext-language_tools.js" charset="utf-8"></script>
 <script src="/socket.io/socket.io.js"></script>
+<script src="/wit/microphone/microphone.min.js"></script>
 <script type="text/javascript">
     var page = 'consoleGame';
 </script>
