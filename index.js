@@ -3,7 +3,7 @@
 var express = require('express');
 var kraken = require('kraken-js');
 var mongoose = require('mongoose');
-
+var enforce = require('express-sslify');
 
 var options, app;
 
@@ -27,6 +27,7 @@ options = {
 };
 
 app = module.exports = express();
+app.use(enforce.HTTPS({ trustProtoHeader: true }));
 app.use(kraken(options));
 app.on('start', function () {
     // Makes connection asynchronously.  Mongoose will queue up database
