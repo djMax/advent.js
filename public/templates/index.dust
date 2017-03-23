@@ -54,7 +54,7 @@
 
 {<style}
 <link href="/components/github-fork-ribbon-css/gh-fork-ribbon.css" rel="stylesheet" type="text/css">
-<link href='http://fonts.googleapis.com/css?family=Source+Code+Pro' rel='stylesheet' type='text/css'>
+<link href='https://fonts.googleapis.com/css?family=Source+Code+Pro' rel='stylesheet' type='text/css'>
 {/style}
 {<script}
 <script src="/components/bootbox/bootbox.js"></script>
