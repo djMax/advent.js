@@ -88,12 +88,12 @@ function game() {
     $('#yourNumber').hide();
 
     function goGame() {
-        socket.emit('player', {name: myName});
+        socket.emit('player', { name: myName });
 
         jsConfig = {
             console: console,
             onCommand: function (line) {
-                socket.emit('chat', {name: myName, text: line});
+                socket.emit('chat', { name: myName, text: line });
                 jsOutput.clearPrompt();
                 jsOutput.renderOutput(myName + ': ' + line, function () {
                 });
@@ -117,7 +117,7 @@ function game() {
 
     if (window.localStorage.getItem('gameuser')) {
         myName = window.localStorage.getItem('gameuser');
-        players[myName] = {name: myName};
+        players[myName] = { name: myName };
         goGame();
         $('#login').hide();
     } else {
@@ -133,7 +133,7 @@ function game() {
             // When the client hits ENTER on their keyboard
             if (event.which === 13) {
                 myName = $('#login .usernameInput').val();
-                socket.emit('player', {name: myName});
+                socket.emit('player', { name: myName });
                 window.localStorage.setItem('gameuser', myName);
                 goGame();
                 $('#login').fadeOut();
@@ -143,7 +143,7 @@ function game() {
 
     socket.on('player', function (data) {
         console.log('PLAYER', data);
-        socket.emit('playerResponse', {name: myName});
+        socket.emit('playerResponse', { name: myName });
     });
 
     socket.on('playerResponse', function (data) {
@@ -195,7 +195,7 @@ function game() {
 
     function checkResult() {
         if (curOpFn && leftValue && rightValue && curOpFn(leftValue, rightValue) == current.target) {
-            socket.emit('win', {name: myName});
+            socket.emit('win', { name: myName });
             alert('YOU WIN');
             $('#gameStart').show();
         } else {
@@ -411,7 +411,7 @@ function consoleGamePage() {
         } catch (x) {
             var trace;
             if (window["printStackTrace"]) {
-                trace = printStackTrace({e: x})
+                trace = printStackTrace({ e: x })
             }
             var lastLine = trace ? trace[0].match(/<anonymous>:(\d+):(\d+)/) : null;
             if (lastLine && lastLine.length > 1) {
@@ -563,7 +563,7 @@ function canvasPage() {
         var key = event.keyCode;
         callKeyFn('key', key);
         if (key >= 37 && key <= 40) {
-            callKeyFn(['left','up','right','down'][key - 37], key);
+            callKeyFn(['left', 'up', 'right', 'down'][key - 37], key);
         }
     });
 
@@ -586,7 +586,7 @@ function canvasPage() {
         } catch (x) {
             var trace;
             if (window["printStackTrace"]) {
-                trace = printStackTrace({e: x})
+                trace = printStackTrace({ e: x })
             }
             var lastLine = trace ? trace[0].match(/<anonymous>:(\d+):(\d+)/) : null;
             if (lastLine && lastLine.length > 1) {
@@ -660,7 +660,7 @@ function canvasClosure(socket, editor) {
                 message = type;
                 type = null;
             }
-            socket.emit('chat', {type: type, message: message});
+            socket.emit('chat', { type: type, message: message });
         }, on = function (e, fn) {
             _jsListeners[e] = _jsListeners[e] || [];
             _jsListeners[e].push(fn);
@@ -669,7 +669,7 @@ function canvasClosure(socket, editor) {
     return (function (code) {
         var me = socket.id;
         console.trace('Running code');
-        var transformed = babel.transform('var programFunction = async function () { ' + code + '}; programFunction();', {stage: 0});
+        var transformed = babel.transform('var programFunction = async function () { ' + code + '}; programFunction();', { stage: 0 });
         var width = canvas.width, height = canvas.height;
         eval(transformed.code);
     });
@@ -677,13 +677,13 @@ function canvasClosure(socket, editor) {
 
 function closure(socket, editor, output) {
     var random = function (high) {
-            return Math.floor(Math.random() * high) + 1;
-        }, addLetter = function (c, v) {
-            if (typeof v === 'string') {
-                v = v.charCodeAt(0);
-            }
-            return String.fromCharCode((c.charCodeAt(0) + v) % 256);
-        },
+        return Math.floor(Math.random() * high) + 1;
+    }, addLetter = function (c, v) {
+        if (typeof v === 'string') {
+            v = v.charCodeAt(0);
+        }
+        return String.fromCharCode((c.charCodeAt(0) + v) % 256);
+    },
         addletter = addLetter,
         print = function (text) {
             output.renderOutput(text, function () {
@@ -716,16 +716,34 @@ function closure(socket, editor, output) {
                 message = type;
                 type = null;
             }
-            socket.emit('chat', {type: type, message: message});
+            socket.emit('chat', { type: type, message: message });
         }, on = function (e, fn) {
             _jsListeners[e] = _jsListeners[e] || [];
             _jsListeners[e].push(fn);
+        }, delay = function (t) {
+            return new Promise(function (resolve) {
+                setTimeout(resolve, t * 1000);
+            });
+        }, rooms = function () {
+            return new Promise(function (resolve) {
+                $.ajax({
+                    url: '/game-map',
+                    type: 'GET',
+                    success: function (response) {
+                        resolve(response);
+                    },
+                    error: function (e) {
+                        console.error(e);
+                        alert('Map failed ' + e.message);
+                    }
+                })
+            });
         };
 
     return (function (code) {
         var me = socket.id;
         console.trace('Running code');
-        var transformed = babel.transform('var programFunction = async function () { ' + code + '}; programFunction();', {stage: 0});
+        var transformed = babel.transform('var programFunction = async function () { ' + code + '}; programFunction();', { stage: 0 });
         eval(transformed.code);
     });
 }
@@ -748,14 +766,14 @@ function sizer() {
 function sha1(str1) {
     for (
         var blockstart = 0,
-            i = 0,
-            W = [],
-            A, B, C, D, F, G,
-            H = [A = 0x67452301, B = 0xEFCDAB89, ~A, ~B, 0xC3D2E1F0],
-            word_array = [],
-            temp2,
-            s = unescape(encodeURI(str1)),
-            str_len = s.length;
+        i = 0,
+        W = [],
+        A, B, C, D, F, G,
+        H = [A = 0x67452301, B = 0xEFCDAB89, ~A, ~B, 0xC3D2E1F0],
+        word_array = [],
+        temp2,
+        s = unescape(encodeURI(str1)),
+        str_len = s.length;
 
         i <= str_len;
     ) {
@@ -768,12 +786,12 @@ function sha1(str1) {
         i = 0;
 
         for (; i < 80;
-               A = [[
-                   (G = ((s = A[0]) << 5 | s >>> 27) + A[4] + (W[i] = (i < 16) ? ~~word_array[blockstart + i] : G << 1 | G >>> 31) + 1518500249) + ((B = A[1]) & (C = A[2]) | ~B & (D = A[3])),
-                   F = G + (B ^ C ^ D) + 341275144,
-                   G + (B & C | B & D | C & D) + 882459459,
-                   F + 1535694389
-               ][0 | ((i++) / 20)] | 0, s, B << 30 | B >>> 2, C, D]
+            A = [[
+                (G = ((s = A[0]) << 5 | s >>> 27) + A[4] + (W[i] = (i < 16) ? ~~word_array[blockstart + i] : G << 1 | G >>> 31) + 1518500249) + ((B = A[1]) & (C = A[2]) | ~B & (D = A[3])),
+                F = G + (B ^ C ^ D) + 341275144,
+                G + (B & C | B & D | C & D) + 882459459,
+                F + 1535694389
+            ][0 | ((i++) / 20)] | 0, s, B << 30 | B >>> 2, C, D]
         ) {
             G = W[i - 3] ^ W[i - 8] ^ W[i - 14] ^ W[i - 16];
         }
@@ -939,7 +957,7 @@ function doWit() {
         console.log("Recording stopped, processing started");
     };
     mic.onresult = function (intent, entities) {
-        console.log(intent,entities);
+        console.log(intent, entities);
         var r = kv("intent", intent);
 
         for (var k in entities) {
@@ -980,7 +998,7 @@ function doWit() {
     // mic.start();
     // mic.stop();
 
-    function kv (k, v) {
+    function kv(k, v) {
         if (toString.call(v) !== "[object String]") {
             v = JSON.stringify(v);
         }

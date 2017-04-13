@@ -27,14 +27,16 @@ options = {
 };
 
 app = module.exports = express();
-app.use(enforce.HTTPS({ trustProtoHeader: true }));
+if (process.env.NO_SSL !== 'true') {
+    app.use(enforce.HTTPS({ trustProtoHeader: true }));
+}
 app.use(kraken(options));
 app.on('start', function () {
     // Makes connection asynchronously.  Mongoose will queue up database
     // operations and release them when the connection is complete.
     mongoose.connect(uristring, function (err, res) {
         if (err) {
-            console.log ('ERROR connecting to MongoDB: ' + err);
+            console.log('ERROR connecting to MongoDB: ' + err);
         } else {
             console.log('Application ready to serve requests.');
             console.log('Environment: %s', app.kraken.get('env:env'));
