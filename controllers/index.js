@@ -118,17 +118,21 @@ function parseSheet(rooms, sheetUrl) {
     return new Promise(function (resolve) {
         request.get(sheetUrl)
             .end(function (error, content) {
-                content.body.feed.entry.map(entryInfo).forEach(function (e) {
-                    if (e.room) {
-                        lastRoom = rooms[e.room.toLowerCase()] = rooms[e.room] || {
-                            prompt: e.prompt,
-                            choices: [],
-                        };
-                    }
-                    delete e.room;
-                    delete e.prompt;
-                    lastRoom.choices.push(e);
-                });
+                try {
+                    content.body.feed.entry.map(entryInfo).forEach(function (e) {
+                        if (e.room) {
+                            lastRoom = rooms[e.room.toLowerCase()] = rooms[e.room] || {
+                                prompt: e.prompt,
+                                choices: [],
+                            };
+                        }
+                        delete e.room;
+                        delete e.prompt;
+                        lastRoom.choices.push(e);
+                    });
+                } catch (error) {
+                    console.error(error);
+                }
                 resolve();
             });
     });
