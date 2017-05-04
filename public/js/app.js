@@ -1,5 +1,25 @@
 'use strict';
 
+function levenshtein(a, b) {
+    var tmp;
+    if (a.length === 0) { return b.length; }
+    if (b.length === 0) { return a.length; }
+    if (a.length > b.length) { tmp = a; a = b; b = tmp; }
+
+    var i, j, res, alen = a.length, blen = b.length, row = Array(alen);
+    for (i = 0; i <= alen; i++) { row[i] = i; }
+
+    for (i = 1; i <= blen; i++) {
+        res = i;
+        for (j = 1; j <= alen; j++) {
+            tmp = row[j - 1];
+            row[j - 1] = res;
+            res = b[i - 1] === a[j - 1] ? tmp : Math.min(tmp + 1, Math.min(res + 1, row[j] + 1));
+        }
+    }
+    return res;
+}
+
 var JsOutput = require('./jsOutput'),
     _jsListeners = {},
     canvas,
@@ -270,9 +290,7 @@ function game() {
 }
 
 function consoleGamePage() {
-
     socket = io();
-    doWit();
     var appName = document.location.pathname.substring(1);
 
     if (window.location.search.substring(1).indexOf("p=") === 0) {
@@ -697,11 +715,26 @@ function closure(socket, editor, output) {
             if (message) {
                 print(message);
             }
+            const speechResolver = (text) => {
+                output._config.onCommand = loggerInput;
+                output.deactivate();
+                resolver(text);
+            };
+            try {
+                speech.start(speechResolver);
+            } catch (err) {
+                console.error(err);
+            }
             var resolver;
             output._config.onCommand = function (line) {
                 setTimeout(function () {
                     resolver(line);
                 }, 0);
+                try {
+                    speech.stop();
+                } catch (error) {
+                    console.error(error);
+                }
                 output._config.onCommand = loggerInput;
                 output.deactivate();
             };
@@ -711,6 +744,21 @@ function closure(socket, editor, output) {
                 resolver = resolve;
             });
         }, readline = readLine,
+        choose = function (choices) {
+            choices.forEach((c, ix) => {
+                output.renderOutput(`${ix + 1}. ${c}`, () => { });
+            });
+            readLine().then((v) => {
+                const tops = choices.map((c, ix) => ({
+                    index: ix,
+                    edit: levenshtein(c, v),
+                }));
+                console.log('SORT EDIT');
+                tops.sort((a, b) => (a.edit - b.edit));
+                console.log(tops);
+                return String(tops[0].index);
+            });
+        },
         send = function (type, message) {
             if (type && !message) {
                 message = type;
@@ -739,7 +787,7 @@ function closure(socket, editor, output) {
                 })
             });
         };
-
+    var speech = doSpeech(print);
     return (function (code) {
         var me = socket.id;
         console.trace('Running code');
@@ -1004,4 +1052,44 @@ function doWit() {
         }
         return k + "=" + v + "\n";
     }
+}
+
+function doSpeech(print) {
+    const SpeechRecognition = window.SpeechRecognition || webkitSpeechRecognition;
+    const SpeechGrammarList = window.SpeechGrammarList || webkitSpeechGrammarList;
+    const SpeechRecognitionEvent = window.SpeechRecognitionEvent || webkitSpeechRecognitionEvent;
+    let results;
+
+    const recognition = new SpeechRecognition();
+    recognition.onresult = (event) => {
+        const last = event.results.length - 1;
+        const response = event.results[last][0].transcript;
+        console.log(response);
+        if (results) {
+            results(response);
+        }
+    };
+
+    recognition.onspeechend = function () {
+        recognition.stop();
+    }
+
+    recognition.onnomatch = function (event) {
+        print('Say what now?');
+    }
+
+    recognition.onerror = function (event) {
+        console.error('Error occurred in recognition', event.error);
+    }
+
+    return {
+        start(handler) {
+            results = handler;
+            recognition.start();
+        },
+        stop() {
+            recognition.stop();
+        }
+    }
+    return recognition;
 }
