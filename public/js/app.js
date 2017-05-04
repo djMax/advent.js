@@ -721,7 +721,7 @@ function closure(socket, editor, output) {
                 resolver(text);
             };
             try {
-                speech.start(speechResolver);
+//                speech.start(speechResolver);
             } catch (err) {
                 console.error(err);
             }
@@ -731,7 +731,7 @@ function closure(socket, editor, output) {
                     resolver(line);
                 }, 0);
                 try {
-                    speech.stop();
+//                    speech.stop();
                 } catch (error) {
                     console.error(error);
                 }
@@ -746,16 +746,14 @@ function closure(socket, editor, output) {
         }, readline = readLine,
         choose = function (choices) {
             choices.forEach((c, ix) => {
-                output.renderOutput(`${ix + 1}. ${c}`, () => { });
+                output.renderOutput(`${ix + 1}. ${c}`, () => { };
             });
             readLine().then((v) => {
                 const tops = choices.map((c, ix) => ({
                     index: ix,
                     edit: levenshtein(c, v),
                 }));
-                console.log('SORT EDIT');
                 tops.sort((a, b) => (a.edit - b.edit));
-                console.log(tops);
                 return String(tops[0].index);
             });
         },
@@ -787,7 +785,7 @@ function closure(socket, editor, output) {
                 })
             });
         };
-    var speech = doSpeech(print);
+//    var speech = doSpeech(print);
     return (function (code) {
         var me = socket.id;
         console.trace('Running code');
