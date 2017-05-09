@@ -2,7 +2,6 @@
 .transpiled
 .nyc_output
 api/*-spec.json
-yarn.lock
 .build/
 
 # Wercker
