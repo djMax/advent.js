@@ -6,9 +6,14 @@ import appReducer from '../common/reducers';
 // Global styles
 import './css/advent.css';
 
-entryPoint({
-  reducers: appReducer,
-  router: Router,
-  routerPath: '../common/router',
-  initialState: window.PreloadedState,
-});
+export * from './runner';
+export * from './storage';
+
+if (typeof window !== 'undefined') {
+  entryPoint({
+    reducers: appReducer,
+    router: Router,
+    routerPath: '../common/router',
+    initialState: window.PreloadedState,
+  });
+}

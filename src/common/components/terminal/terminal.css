@@ -25,6 +25,8 @@ div.wg code {
 div.wg pre {
   padding: 10px 10px;
   margin: 0;
+  overflow-y: scroll;
+  max-height: 100%;
 }
 
 div.wg pre code {
