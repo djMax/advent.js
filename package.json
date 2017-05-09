@@ -7,6 +7,7 @@
     "start": "build/index.js",
     "start-dev": "nodemon -r babel-register src/index.js",
     "build": "yarn build:client && yarn build:server",
+    "postinstall": "yarn build",
     "build:client": "webpack --env.production --config config/webpack.config.js",
     "build:visualize": "cross-env WEBPACK_VISUALIZE=true webpack --env.production --config config/webpack.config.js",
     "build:server": "cross-env NODE_ENV=production babel --source-maps inline -Dd build/ src/",
