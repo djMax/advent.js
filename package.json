@@ -4,7 +4,7 @@
   "description": "A shell project for a GasBuddy web application",
   "private": true,
   "scripts": {
-    "start": "build/index.js",
+    "start": "node build/index.js",
     "start-dev": "nodemon -r babel-register src/index.js",
     "build": "yarn build:client && yarn build:server",
     "heroku-postbuild": "yarn build",
