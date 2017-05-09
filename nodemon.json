@@ -1,0 +1,8 @@
+{
+  "watch": [
+    "src/routes"
+  ],
+  "execMap": {
+    "js": "node -r babel-register src/index.js"
+  }
+}

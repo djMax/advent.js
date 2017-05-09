@@ -1,0 +1,44 @@
+{
+  "MONGO_URI": "mongodb://localhost/AdventJS",
+  "port": 8888,
+  "connections": {
+    "mongo": {
+      "module": "sourcerequire:./lib/mongo",
+      "uri": "config:MONGO_URI"
+    }
+  },
+  "meddleware": {
+    "build-static": {
+      "priority": 21,
+      "module": {
+        "name": "serve-static",
+        "arguments": [
+          "path:./build-static"
+        ]
+      }
+    },
+    "session": {
+      "priority": 23,
+      "module": {
+        "name": "sourcepath:./lib/mongo-session",
+        "arguments": [
+          {
+            "secret": "659cecc2-c44f-408e-bc66-788c514a66db",
+            "cookie": {
+              "path": "/",
+              "httpOnly": true,
+              "maxAge": null
+            },
+            "resave": true,
+            "saveUninitialized": true,
+            "store": null
+          }
+        ]
+      }
+    }
+  },
+  "session": {
+    "saveUninitialized": false,
+    "resave": false
+  }
+}

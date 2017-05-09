@@ -1,0 +1,18 @@
+{
+  "logRequestBody": true,
+  "meddleware": {
+    "webpackDev": {
+      "priority": 19, // just before static
+      "module": {
+        "name": "@gasbuddy/web-dev",
+        "method": "webpackMiddleware",
+        "arguments": [
+          {
+            "config": "require:@gasbuddy/web-dev#webpackConfig",
+            "env": "config:env.env"
+          }
+        ]
+      }
+    }
+  }
+}
