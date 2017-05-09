@@ -6,12 +6,12 @@ import { Terminal } from '../../components/terminal';
 import { CodeRunner } from '../../../client/runner';
 
 function defaultCode() {
-  if (window.localStorage['code-default']) {
+  if (typeof window !== 'undefined' && window.localStorage['code-default']) {
     return window.localStorage['code-default'];
   } else {
     return `const yourName = await readLine('What is your name?');
 print(\`Hello \${yourName}\`);
-`
+`;
   }
 }
 
