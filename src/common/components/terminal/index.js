@@ -28,9 +28,11 @@ export class Terminal extends React.Component {
 
   key = (e) => {
     e.preventDefault();
-    this.setState({
-      input: `${this.state.input}${String.fromCharCode(e.which)}`,
-    });
+    if (e.key.length === 1) {
+      this.setState({
+        input: `${this.state.input}${e.key}`,
+      });
+    }
   }
 
   componentDidUpdate() {

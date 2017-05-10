@@ -1,6 +1,7 @@
 import fetch from 'isomorphic-fetch';
 import levenshtein from './levenshtein';
 import babeler from './babeler';
+import { LocalStorage } from '../storage';
 
 export class CodeRunner {
   constructor(delegate) {
@@ -14,11 +15,16 @@ export class CodeRunner {
       choose: this.choose,
       clear: this.clear,
       fetch: this.fetch,
+      getSetting: this.getSetting,
+      saveSetting: this.saveSetting,
+      getOrAsk: this.getOrAsk,
+      playSound: this.playSound,
     };
+
     // These functions will automatically have "await" applied to them to
     // allow easier entry into the concept of async programming. Perhaps
     // outputting a warning would be a good thing.
-    this.asyncFunctions = ['readLine', 'readline', 'delay', 'choose', 'fetch'];
+    this.asyncFunctions = ['readLine', 'readline', 'delay', 'choose', 'fetch', 'getOrAsk'];
   }
 
   run(codeText) {
@@ -90,14 +96,40 @@ export class CodeRunner {
         body: body ? JSON.stringify(body) : undefined,
         headers,
       });
-      return await response.json();
+      const data = await response.json();
+      this.delegate.showLoader(false);
+      return data;
     } catch (error) {
       console.error(error);
+      this.delegate.showLoader(false);
       throw error;
     }
   }
 
   delay(seconds) {
     return new Promise(accept => setTimeout(accept, seconds * 1000));
+  }
+
+  getSetting = (name) => {
+    return LocalStorage.getItem(`user-${name}`);
+  }
+
+  saveSetting = (name, value) => {
+    return LocalStorage.setItem(`user-${name}`, value);
+  }
+
+  getOrAsk = async (name, question) => {
+    let s = this.getSetting(name);
+    if (!s) {
+      s = await this.readLine(question);
+      this.saveSetting(name, s);
+    }
+    return s;
+  }
+
+  playSound = (url) => {
+    const audio = new Audio(url);
+    audio.play();
+    return audio;
   }
 }

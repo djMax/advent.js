@@ -1,5 +1,7 @@
 import request from 'superagent';
 
+const sheetCache = {};
+
 function getT(entry, prop) {
   if (entry[prop] && entry[prop].$t) {
     return entry[prop].$t;
@@ -21,14 +23,22 @@ function entryInfo(entry) {
 }
 
 function parseSheet(rooms, sheetUrl, updated) {
+  if (sheetCache[sheetUrl] && sheetCache[sheetUrl].updated === updated) {
+    console.log('Cache hit', sheetUrl);
+    Object.assign(rooms, sheetCache[sheetUrl].parsed);
+    return;
+  }
+
   let lastRoom;
   return new Promise(function (resolve) {
-    console.error('GET', sheetUrl, updated);
     request.get(sheetUrl)
       .end(function (error, content) {
         try {
           content.body.feed.entry.map(entryInfo).forEach(function (e) {
             if (e.room) {
+              if (!lastRoom) {
+                rooms['_firstRoom'] = e.room.toLowerCase();
+              }
               lastRoom = rooms[e.room.toLowerCase()] = rooms[e.room] || {
                 prompt: e.prompt,
                 choices: [],
@@ -41,6 +51,10 @@ function parseSheet(rooms, sheetUrl, updated) {
         } catch (error) {
           console.error('sheet parser error (ignoring sheet)', error);
         }
+        sheetCache[sheetUrl] = {
+          updated,
+          parsed: rooms,
+        };
         resolve();
       });
   });
@@ -61,7 +75,7 @@ export default function route(router) {
         r.body.feed.entry.forEach(function (person) {
           const who = person.title.$t;
           const rooms = {};
-          toDo.push(parseSheet(rooms, person.link[0].href + '?alt=json'), person.updated['$t']);
+          toDo.push(parseSheet(rooms, person.link[0].href + '?alt=json', person.updated['$t']));
           sheets[who.toLowerCase()] = rooms;
         });
         Promise.all(toDo).then(function () {

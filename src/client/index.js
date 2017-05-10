@@ -8,6 +8,7 @@ import './css/advent.css';
 
 export * from './runner';
 export * from './storage';
+export * from './socket';
 
 if (typeof window !== 'undefined') {
   entryPoint({

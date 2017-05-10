@@ -1,30 +1,44 @@
-import Helmet from 'react-helmet';
-import { Container, Grid, Dimmer, Loader, Menu, Icon } from 'semantic-ui-react';
+import qs from 'query-string';
 import React, { Component } from 'react';
+import { withRouter } from 'react-router';
+import { Container, Grid, Dimmer, Loader, Menu, Icon } from 'semantic-ui-react';
 import { AceEditor } from '../../components/aceWrap';
 import { Terminal } from '../../components/terminal';
-import { CodeRunner, LocalStorage } from '../../../client';
+import { CodeRunner, LocalStorage, SocketIO } from '../../../client';
 
 const defaultCode = `const yourName = readLine('What is your name?');
 delay(1);
 print(\`Hello \${yourName}\`);
 `;
 
-export default class Main extends Component {
+class Main extends Component {
   state = {
     mounted: false,
     height: '500px',
     readInput: false,
+    moderator: false,
     showCode: true,
     code: LocalStorage.getItem('code:default') || defaultCode,
   }
 
   componentDidMount() {
     this.codeRunner = new CodeRunner(this);
-    this.setState({ mounted: true });
+    const query = qs.parse(this.props.location.search);
+    const state = Object.assign({ mounted: true }, {
+      moderator: query.moderator === 'true' ? true : false,
+      showCode: query.showCode === 'false' ? false : true,
+      showMenu: query.showMenu === 'false' ? false : true,
+    });
+    this.setState(state, () => {
+      if (!this.state.showMenu && !this.state.showCode) {
+        this.run();
+      }
+    });
     // This has to be persisted to state carefully because otherwise
     // ACE loses its insert point
     this.code = this.state.code;
+    SocketIO.initialize();
+    SocketIO.on('share', code => this.setState({ received: code }));
   }
 
   componentDidUpdate() {
@@ -43,7 +57,8 @@ export default class Main extends Component {
 
   setEditorHeight(mainDiv) {
     if (mainDiv && this.editor) {
-      const menuHeight = mainDiv.querySelector('.top.attached.menu').clientHeight;
+      const menuElt = mainDiv.querySelector('.top.attached.menu');
+      const menuHeight = menuElt ? menuElt.clientHeight : 0;
       const height = `${window.innerHeight - menuHeight}px`;
       if (this.state.height !== height) {
         this.setState({ height });
@@ -116,19 +131,34 @@ export default class Main extends Component {
     });
   }
 
+  clearSettings = () => {
+    LocalStorage.clearUserSettings();
+  }
+
+  copy = () => {
+    SocketIO.send('share', {
+      code: this.code,
+    });
+  }
+
+  receive = () => {
+    this.code = this.state.received;
+    this.setState({ code: this.state.received });
+  }
+
   runComplete(error) {
     const msg = error ?
       `\nOops... An error occurred:\n\n${error.stack}` :
       '\n\n-- PROGRAM FINISHED --';
     this.setState({
-      showCode: true,
+      showCode: this.state.showMenu ? true : this.state.showCode,
       fetching: false,
       lines: this.append(msg),
     });
   }
 
   render() {
-    const { mounted, showCode, fetching, fetchMessage } = this.state;
+    const { mounted, showCode, fetching, fetchMessage, showMenu } = this.state;
 
     if (!mounted) {
       return (
@@ -145,17 +175,30 @@ export default class Main extends Component {
 
     return (
       <div ref={e => this.setEditorHeight(e)}>
-        <Menu attached="top" inverted>
-          <Menu.Item name="edit" active={showCode} onClick={this.toggleCode}>
-            <Icon name="code" />Show Code
-          </Menu.Item>
+        {showMenu &&
+          <Menu attached="top" inverted>
+            <Menu.Item name="edit" active={showCode} onClick={this.toggleCode}>
+              <Icon name="code" />Show Code
+            </Menu.Item>
+            <Menu.Item name="clear" onClick={this.clearSettings}>
+              <Icon name="user x" />Clear Settings
+            </Menu.Item>
 
-          <Menu.Menu position="right">
-            <Menu.Item name="edit" onClick={this.run}>
-              <Icon name="play" />Run Code
-          </Menu.Item>
-          </Menu.Menu>
-        </Menu>
+            <Menu.Menu position="right">
+              <Menu.Item name="copy" onClick={this.copy}>
+                <Icon name="slideshare" />Copy
+            </Menu.Item>
+              {this.state.received && this.state.received !== this.code &&
+                <Menu.Item name="receive" onClick={this.receive}>
+                  <Icon name="cloud download" />Receive
+            </Menu.Item>
+              }
+              <Menu.Item name="run" onClick={this.run}>
+                <Icon name="play" />Run Code
+            </Menu.Item>
+            </Menu.Menu>
+          </Menu>
+        }
 
         <Dimmer.Dimmable dimmed={fetching}>
           <Dimmer active={fetching}>
@@ -181,3 +224,5 @@ export default class Main extends Component {
     );
   }
 }
+
+export default withRouter(Main);

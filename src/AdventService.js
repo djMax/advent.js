@@ -30,4 +30,10 @@ AdventService.Server = class AdventServer extends Server {
       super(new AdventService(nameOrOpts));
     }
   }
+
+  async create(sourcedir) {
+    return super.create(sourcedir).then(() => {
+      this.service.socketio.setup(this.servers[0]);
+    });
+  }
 };

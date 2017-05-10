@@ -55,6 +55,7 @@ if (argv.nobind) {
 } else {
   server = new AdventService.Server(name);
   service = server.service;
+  service.server = server;
 
   server
     .create(dirname)
