@@ -5,6 +5,9 @@
     "mongo": {
       "module": "sourcerequire:./lib/mongo",
       "uri": "config:MONGO_URI"
+    },
+    "socketio": {
+      "module": "sourcerequire:./lib/socket"
     }
   },
   "meddleware": {
