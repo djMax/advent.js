@@ -48,12 +48,23 @@ class Main extends Component {
     }
   }
 
-  append(text = '') {
+  appendFormatted(args) {
     this.outputCtr = (this.outputCtr || 0) + 1;
-    return (this.state.lines || []).concat([{
+    this.lines = (this.lines || []).concat([{
+      ...args,
+      key: `${this.outputCtr}`,
+    }]);
+    return this.lines;
+  }
+
+  append(text = '', extraArgs = {}) {
+    this.outputCtr = (this.outputCtr || 0) + 1;
+    this.lines = (this.lines || []).concat([{
+      ...extraArgs,
       text,
       key: `${this.outputCtr}`,
     }]);
+    return this.lines;
   }
 
   setEditorHeight(mainDiv) {
@@ -93,15 +104,25 @@ class Main extends Component {
   /**
    * Called by the CodeRunner to print stuff to terminal
    */
-  print(value) {
+  print(value, args) {
     this.setState({
-      lines: this.append(value),
+      lines: this.append(value, args),
+    });
+  }
+
+  show(image, args) {
+    this.setState({
+      lines: this.appendFormatted({
+        ...args,
+        image,
+      }),
     });
   }
 
   clear() {
+    this.lines = [];
     this.setState({
-      lines: [],
+      lines: this.lines,
     });
   }
 
@@ -188,9 +209,12 @@ class Main extends Component {
             </Menu.Item>
 
             <Menu.Menu position="right">
+              <Menu.Item name="clearOutput" onClick={() => this.clear()}>
+                <Icon name="delete" />Clear Output
+              </Menu.Item>
               <Menu.Item name="copy" onClick={this.copy}>
                 <Icon name="slideshare" />Copy
-            </Menu.Item>
+              </Menu.Item>
               {this.state.received && this.state.received !== this.code &&
                 <Menu.Item name="receive" onClick={this.receive}>
                   <Icon name="cloud download" />Receive

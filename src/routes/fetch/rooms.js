@@ -19,6 +19,7 @@ function entryInfo(entry) {
     next: getT(entry, 'gsx$nextroom'),
     message: getT(entry, 'gsx$message'),
     special: getT(entry, 'gsx$special'),
+    image: getT(entry, 'gsx$image'),
   };
 }
 

@@ -30,7 +30,6 @@ div.wg pre {
 }
 
 div.wg pre code {
-  display: block;
   -webkit-box-shadow:none;
   -moz-box-shadow:none;
   box-shadow:none;
@@ -57,10 +56,10 @@ div.wg pre:after{
   top:0;
   left:0;
   opacity:1;
+  pointer-events: none;
   background-image: url(data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAAECAYAAABP2FU6AAAAE0lEQVQIHWP4//8/AxMDFMiDWQA2wAMhzy0v7QAAAABJRU5ErkJggg==); /*scanline*/
   -webkit-filter: drop-shadow(15.32px 2.18px 7.35px rgba(20, 184, 189, 1));
 }
-
 
 @-webkit-keyframes cursor{
   from {

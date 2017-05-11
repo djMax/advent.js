@@ -1,5 +1,6 @@
 import React from 'react';
 import PT from 'prop-types';
+import { Image } from 'semantic-ui-react';
 import Style from './terminal.css';
 
 export class Terminal extends React.Component {
@@ -41,10 +42,14 @@ export class Terminal extends React.Component {
     }
   }
 
+  click = (e) => {
+    this.textInput.focus();
+  }
+
   render() {
     const { lines, readInput } = this.props;
     return (
-      <div className={Style.wg} onClick={() => this.textInput.focus()}>
+      <div className={Style.wg} onClick={this.click}>
         <input
           type="text"
           className={Style.charInput}
@@ -53,9 +58,12 @@ export class Terminal extends React.Component {
           onKeyUp={this.control}
         />
         <pre>
-          {lines.map(({ text, key }) => (
-            <code key={key}>{text}</code>
-          ))}
+          {lines.map(({ text, image, key, onClick }) => {
+            if (image) {
+              return (<div key={key} onClick={onClick}><Image src={image} style={{margin:'auto'}} /></div>);
+            }
+            return (<div key={key} onClick={onClick}><code>{text}</code></div>);
+          })}
           {readInput &&
             <code className={Style.input}>{this.state.input}</code>
           }

@@ -19,6 +19,7 @@ export class CodeRunner {
       saveSetting: this.saveSetting,
       getOrAsk: this.getOrAsk,
       playSound: this.playSound,
+      show: this.show,
     };
 
     // These functions will automatically have "await" applied to them to
@@ -51,6 +52,10 @@ export class CodeRunner {
     this.delegate.print(values.join(' '));
   }
 
+  show = (image) => {
+    this.delegate.show(image);
+  }
+
   readLine = (question) => {
     return new Promise((accept) => {
       this.delegate.getInput(question, accept);
@@ -63,10 +68,17 @@ export class CodeRunner {
         `choose() must be passed an array (e.g. ['one','two','three']) of choices. You passed ${options}`,
       );
     }
-    this.print(options.map((opt, ix) => `${ix + 1}. ${opt}`).join('\n'));
+    options.forEach((opt, ix) => {
+      this.delegate.print(`${ix + 1}. ${opt}`, {
+        onClick: () => {
+          console.error('Choice clicked');
+          this.delegate.gotInput(String(ix + 1));
+        },
+      });
+    });
     const input = await this.readLine();
     if (Number.isInteger(Number(input))) {
-      return Number(input);
+      return Number(input) - 1;
     }
     const matches = options
       .map((opt, ix) => ({

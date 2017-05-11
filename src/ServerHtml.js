@@ -33,7 +33,7 @@ export const Html = (props) => {
         {title.toComponent()}
         {meta.toComponent()}
         {link.toComponent()}
-        <link href="http://fonts.googleapis.com/css?family=VT323" rel="stylesheet" type="text/css" />
+        <link href="https://fonts.googleapis.com/css?family=VT323" rel="stylesheet" type="text/css" />
         {process.env.NODE_ENV === 'production' ?
           <link rel="stylesheet" href="/bundle.css" /> :
           null}
