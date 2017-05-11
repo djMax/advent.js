@@ -9,6 +9,7 @@ import './css/advent.css';
 export * from './runner';
 export * from './storage';
 export * from './socket';
+export * from './speech';
 
 if (typeof window !== 'undefined') {
   entryPoint({

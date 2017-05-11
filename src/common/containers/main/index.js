@@ -4,7 +4,7 @@ import { withRouter } from 'react-router';
 import { Container, Grid, Dimmer, Loader, Menu, Icon } from 'semantic-ui-react';
 import { AceEditor } from '../../components/aceWrap';
 import { Terminal } from '../../components/terminal';
-import { CodeRunner, LocalStorage, SocketIO } from '../../../client';
+import { CodeRunner, LocalStorage, SocketIO, Speech } from '../../../client';
 
 const defaultCode = `const yourName = readLine('What is your name?');
 delay(1);
@@ -39,6 +39,7 @@ class Main extends Component {
     this.code = this.state.code;
     SocketIO.initialize();
     SocketIO.on('share', code => this.setState({ received: code }));
+    this.speech = new Speech(this);
   }
 
   componentDidUpdate() {
@@ -75,6 +76,7 @@ class Main extends Component {
    * We got input from the terminal window
    */
   gotInput = (input) => {
+    this.speech.stop();
     this.setState({
       readInput: false,
       key: `${this.outputCtr}`,
@@ -105,6 +107,7 @@ class Main extends Component {
 
   getInput(prompt, callback) {
     this.inputCallback = callback;
+    this.speech.start();
     const newState = { readInput: true };
     if (prompt) {
       newState.lines = this.append(prompt);
