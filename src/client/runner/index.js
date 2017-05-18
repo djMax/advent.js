@@ -22,6 +22,7 @@ export class CodeRunner {
       playSound: this.playSound,
       show: this.show,
       wait: this.wait,
+      youtube: this.youtube,
     };
 
     // These functions will automatically have "await" applied to them to
@@ -56,6 +57,10 @@ export class CodeRunner {
 
   show = (image) => {
     this.delegate.show(image);
+  }
+
+  youtube = (id) => {
+    this.delegate.youtube(id);
   }
 
   readLine = (question) => {

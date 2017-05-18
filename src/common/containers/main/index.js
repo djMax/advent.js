@@ -120,6 +120,15 @@ class Main extends Component {
     });
   }
 
+  youtube(id, args) {
+    this.setState({
+      lines: this.appendFormatted({
+        ...args,
+        youtube: id,
+      }),
+    });
+  }
+
   clear() {
     this.lines = [];
     this.setState({

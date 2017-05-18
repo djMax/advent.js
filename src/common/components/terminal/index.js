@@ -1,5 +1,6 @@
 import React from 'react';
 import PT from 'prop-types';
+import YouTube from 'react-youtube';
 import { Image } from 'semantic-ui-react';
 import Style from './terminal.css';
 
@@ -58,9 +59,12 @@ export class Terminal extends React.Component {
           onKeyUp={this.control}
         />
         <pre>
-          {lines.map(({ text, image, key, onClick }) => {
+          {lines.map(({ text, image, key, onClick, youtube }) => {
             if (image) {
               return (<div key={key} onClick={onClick}><Image src={image} style={{margin:'auto'}} /></div>);
+            }
+            if (youtube) {
+              return (<div key={key}><YouTube id={youtube} /></div>)
             }
             return (<div key={key} onClick={onClick}><code>{text}</code></div>);
           })}
