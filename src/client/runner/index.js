@@ -21,12 +21,13 @@ export class CodeRunner {
       pickRandom: this.pickRandom,
       playSound: this.playSound,
       show: this.show,
+      wait: this.wait,
     };
 
     // These functions will automatically have "await" applied to them to
     // allow easier entry into the concept of async programming. Perhaps
     // outputting a warning would be a good thing.
-    this.asyncFunctions = ['readLine', 'readline', 'delay', 'choose', 'fetch', 'getOrAsk'];
+    this.asyncFunctions = ['readLine', 'readline', 'delay', 'choose', 'fetch', 'getOrAsk', 'wait'];
   }
 
   run(codeText) {
@@ -176,5 +177,9 @@ export class CodeRunner {
       }
     }
     return withPoints[withPoints.length - 1].name;
+  }
+
+  async wait(promise) {
+    return promise;
   }
 }
