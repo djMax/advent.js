@@ -47,7 +47,9 @@ function parseSheet(rooms, sheetUrl, updated) {
             }
             delete e.room;
             delete e.prompt;
-            lastRoom.choices.push(e);
+            if (lastRoom) {
+              lastRoom.choices.push(e);
+            }
           });
         } catch (error) {
           console.error('sheet parser error (ignoring sheet)', error);
