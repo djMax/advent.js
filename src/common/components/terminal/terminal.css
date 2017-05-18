@@ -6,6 +6,14 @@ input.charInput {
   clip: rect(1px,1px,1px,1px);
 }
 
+div.md {
+  position: relative;
+  height: 100%;
+  text-align: left;
+  color:#00fe00;
+  background-color:#002f05;
+}
+
 div.wg {
   position: relative;
   height: 100%;
@@ -22,14 +30,14 @@ div.wg code {
   padding:0.1em 0.2em;
 }
 
-div.wg pre {
+div.wg pre, div.md pre {
   padding: 10px 10px;
   margin: 0;
   overflow-y: scroll;
   max-height: 100%;
 }
 
-div.wg pre code {
+div.wg pre code, div.md pre code {
   -webkit-box-shadow:none;
   -moz-box-shadow:none;
   box-shadow:none;
@@ -38,7 +46,11 @@ div.wg pre code {
   font:400 19px VT323, monospace;
 }
 
-div.wg pre code.input:after{
+div.md pre code {
+  font: 14pt 'Source Code Pro';
+}
+
+div.wg pre code.input:after, div.md pre code.input:after {
   content:"\220E";
   -webkit-animation:cursor .95s ease-in-out infinite;
   -moz-animation:cursor .95s ease-in-out infinite;
@@ -48,7 +60,7 @@ div.wg pre code.input:after{
   font-size:120%;
 }
 
-div.wg pre:after{
+div.wg pre:after {
   content:"";
   width:100%;
   height:100%;

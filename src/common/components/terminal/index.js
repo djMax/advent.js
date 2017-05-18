@@ -47,9 +47,9 @@ export class Terminal extends React.Component {
   }
 
   render() {
-    const { lines, readInput } = this.props;
+    const { lines, readInput, theme } = this.props;
     return (
-      <div className={Style.wg} onClick={this.click}>
+      <div className={Style[theme]} onClick={this.click}>
         <input
           type="text"
           className={Style.charInput}

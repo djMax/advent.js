@@ -1,7 +1,7 @@
 import qs from 'query-string';
 import React, { Component } from 'react';
 import { withRouter } from 'react-router';
-import { Container, Grid, Dimmer, Loader, Menu, Icon } from 'semantic-ui-react';
+import { Container, Grid, Dimmer, Loader, Menu, Icon, Dropdown } from 'semantic-ui-react';
 import { AceEditor } from '../../components/aceWrap';
 import { Terminal } from '../../components/terminal';
 import { CodeRunner, LocalStorage, SocketIO, Speech } from '../../../client';
@@ -13,6 +13,7 @@ print(\`Hello \${yourName}\`);
 
 class Main extends Component {
   state = {
+    theme: 'wg',
     mounted: false,
     height: '500px',
     readInput: false,
@@ -182,7 +183,7 @@ class Main extends Component {
   }
 
   render() {
-    const { mounted, showCode, fetching, fetchMessage, showMenu } = this.state;
+    const { mounted, showCode, fetching, fetchMessage, showMenu, theme } = this.state;
 
     if (!mounted) {
       return (
@@ -201,6 +202,18 @@ class Main extends Component {
       <div ref={e => this.setEditorHeight(e)}>
         {showMenu &&
           <Menu attached="top" inverted>
+            <Dropdown item icon="wrench" simple>
+              <Dropdown.Menu>
+                <Dropdown.Item>
+                  <Icon name='dropdown' />
+                  <span className='text'>Terminal Style</span>
+                  <Dropdown.Menu>
+                    <Dropdown.Item onClick={() => this.setState({ theme: 'wg' })}>WarGames</Dropdown.Item>
+                    <Dropdown.Item onClick={() => this.setState({ theme: 'md' })}>Modern</Dropdown.Item>
+                  </Dropdown.Menu>
+                </Dropdown.Item>
+              </Dropdown.Menu>
+            </Dropdown>
             <Menu.Item name="edit" active={showCode} onClick={this.toggleCode}>
               <Icon name="code" />Show Code
             </Menu.Item>
@@ -232,7 +245,7 @@ class Main extends Component {
             <Loader>{fetchMessage}</Loader>
           </Dimmer>
           <div style={{ float: 'right', width: termWidth, height: this.state.height }} id="wargames">
-            <Terminal readInput={this.state.readInput} onCommand={this.gotInput} lines={this.state.lines} />
+            <Terminal readInput={this.state.readInput} onCommand={this.gotInput} lines={this.state.lines} theme={theme} />
           </div>
         </Dimmer.Dimmable>
 

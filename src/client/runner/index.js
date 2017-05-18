@@ -18,6 +18,7 @@ export class CodeRunner {
       getSetting: this.getSetting,
       saveSetting: this.saveSetting,
       getOrAsk: this.getOrAsk,
+      pickRandom: this.pickRandom,
       playSound: this.playSound,
       show: this.show,
     };
@@ -143,5 +144,37 @@ export class CodeRunner {
     const audio = new Audio(url);
     audio.play();
     return audio;
+  }
+
+  /**
+   * Pick a random value from an array of weighted items or comma delimited spec
+   * formatted like: Option1(50),Option2(50) which would mean 50% option1, 50% option2
+   */
+  pickRandom(...options) {
+    const split = options.length > 1 ? options : options[0].split(',');
+    let totalPoints = 0;
+    const withPoints = split.map((s) => {
+      const match = s.match(/\s*(.*)\((\d+).*\)\s*/);
+      if (match) {
+        totalPoints += Number(match[2]);
+        return {
+          name: match[1],
+          weight: Number(match[2]),
+        };
+      }
+      totalPoints += 1;
+      return {
+        name: s,
+        weight: 1,
+      };
+    });
+    let picked = parseInt(Math.random() * totalPoints);
+    for (let i = 0; i < withPoints.length; i += 1) {
+      picked -= withPoints[i].weight;
+      if (picked <= 0) {
+        return withPoints[i].name;
+      }
+    }
+    return withPoints[withPoints.length - 1].name;
   }
 }
