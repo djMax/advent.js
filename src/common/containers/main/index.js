@@ -1,7 +1,7 @@
 import qs from 'query-string';
 import React, { Component } from 'react';
 import { withRouter } from 'react-router';
-import { Container, Grid, Dimmer, Loader, Menu, Icon, Dropdown } from 'semantic-ui-react';
+import { Container, Grid, Dimmer, Loader, Menu, Icon, Dropdown, Input } from 'semantic-ui-react';
 import { AceEditor } from '../../components/aceWrap';
 import { Terminal } from '../../components/terminal';
 import { CodeRunner, LocalStorage, SocketIO, Speech } from '../../../client';
@@ -30,6 +30,12 @@ class Main extends Component {
       showCode: query.showCode === 'false' ? false : true,
       showMenu: query.showMenu === 'false' ? false : true,
     });
+    if (window.location.pathname !== '/') {
+      const code = LocalStorage.getItem(`code:${window.location.pathname}`);
+      if (code) {
+        state.code = code;
+      }
+    }
     this.setState(state, () => {
       if (!this.state.showMenu && !this.state.showCode) {
         this.run();
@@ -80,7 +86,12 @@ class Main extends Component {
   }
 
   codeChanged = (v) => {
-    LocalStorage.setItem('code:default', v);
+    let room = 'default';
+    if (window.location.pathname !== '/') {
+      room = window.location.pathname;
+    }
+
+    LocalStorage.setItem(`code:${room}`, v);
     this.code = v;
   }
 
@@ -191,6 +202,10 @@ class Main extends Component {
     });
   }
 
+  room(e) {
+    console.log(e, this.roomInput);
+  }
+
   render() {
     const { mounted, showCode, fetching, fetchMessage, showMenu, theme } = this.state;
 
@@ -219,6 +234,15 @@ class Main extends Component {
                   <Dropdown.Menu>
                     <Dropdown.Item onClick={() => this.setState({ theme: 'wg' })}>WarGames</Dropdown.Item>
                     <Dropdown.Item onClick={() => this.setState({ theme: 'md' })}>Modern</Dropdown.Item>
+                  </Dropdown.Menu>
+                </Dropdown.Item>
+                <Dropdown.Item>
+                  <Icon name='dropdown' />
+                  <span className='text'>Rooms</span>
+                  <Dropdown.Menu>
+                    <Dropdown.Item onClick={() => this.props.history.push('/')}>Main</Dropdown.Item>
+                    <Dropdown.Item onClick={() => this.props.history.push('/rooms/adventure')}>Adventure</Dropdown.Item>
+                    <Dropdown.Item onClick={() => this.props.history.push('/rooms/tko')}>TKO</Dropdown.Item>
                   </Dropdown.Menu>
                 </Dropdown.Item>
               </Dropdown.Menu>

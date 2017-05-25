@@ -47,8 +47,25 @@ export class Terminal extends React.Component {
     this.textInput.focus();
   }
 
+  youTubeReady = (e) => {
+    const player = e.target;
+    if (this.activeYoutube) {
+      if (player === this.activeYoutube) {
+        return;
+      }
+      try {
+        this.activeYoutube.pauseVideo();
+      } catch (e) {
+
+      }
+    }
+    this.activeYoutube = player;
+    player.playVideo();
+  }
+
   render() {
     const { lines, readInput, theme } = this.props;
+    const yts = lines.filter(l => !!l.youtube);
     return (
       <div className={Style[theme]} onClick={this.click}>
         <input
@@ -61,10 +78,13 @@ export class Terminal extends React.Component {
         <pre>
           {lines.map(({ text, image, key, onClick, youtube }) => {
             if (image) {
-              return (<div key={key} onClick={onClick}><Image src={image} style={{margin:'auto'}} /></div>);
+              return (<div key={key} onClick={onClick}><Image src={image} style={{ margin: 'auto' }} /></div>);
             }
             if (youtube) {
-              return (<div key={key}><YouTube id={youtube} /></div>)
+              if (yts[yts.length - 1].key === key) {
+                return (<div key={key}><YouTube videoId={youtube} onReady={this.youTubeReady} /></div>)
+              }
+              return (<div key={key}>[removed youtube video]</div>);
             }
             return (<div key={key} onClick={onClick}><code>{text}</code></div>);
           })}

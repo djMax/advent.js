@@ -6,7 +6,10 @@ import {
 } from './components';
 
 const routes = {
-  routes: [{ component: Main, exact: true }],
+  routes: [
+    { path: '/', component: Main, exact: true },
+    { path: '/rooms/:name', component: Main, exact: true },
+  ],
   final: {
     routes: [
       { component: Unknown, path: '//' },

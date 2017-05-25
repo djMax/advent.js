@@ -1,6 +1,7 @@
 import fetch from 'isomorphic-fetch';
 import levenshtein from './levenshtein';
 import babeler from './babeler';
+import qs from 'query-string';
 import { LocalStorage } from '../storage';
 
 export class CodeRunner {
@@ -56,11 +57,24 @@ export class CodeRunner {
   }
 
   show = (image) => {
-    this.delegate.show(image);
+    if (!image) {
+      this.delegate.print('show() must be passed an image/media argument');
+    }
+    const re = /https?:\/\/[^\/]+\.youtube\.com\//i;
+    if (re.test(image)) {
+      this.youtube(image);
+    } else {
+      this.delegate.show(image);
+    }
   }
 
   youtube = (id) => {
-    this.delegate.youtube(id);
+    let videoId = id;
+    if (id.indexOf('?') >= 0) {
+      const part = qs.parse(id.substring(id.indexOf('?')));
+      videoId = part.v || videoId;
+    }
+    this.delegate.youtube(videoId);
   }
 
   readLine = (question) => {
