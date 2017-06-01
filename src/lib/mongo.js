@@ -1,5 +1,10 @@
 import mongoose from 'mongoose';
 
+const Code = mongoose.model('Code', {
+  name: String,
+  code: String,
+});
+
 export default class MongoConnection {
   constructor(context, config) {
     this.config = config;
@@ -16,5 +21,14 @@ export default class MongoConnection {
         }
       });
     });
+  }
+
+  async getCode(name) {
+    const code = await Code.findOne({ name });
+    return code.code;
+  }
+
+  async saveCode(name, code) {
+    await Code.findOneAndUpdate({ name }, { name, code }, { upsert: true });
   }
 }

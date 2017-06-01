@@ -1,4 +1,5 @@
 import qs from 'query-string';
+import fetch from 'isomorphic-fetch';
 import React, { Component } from 'react';
 import { withRouter } from 'react-router';
 import { Container, Grid, Dimmer, Loader, Menu, Icon, Dropdown, Input } from 'semantic-ui-react';
@@ -11,6 +12,16 @@ delay(1);
 print(\`Hello \${yourName}\`);
 `;
 
+function roomKey() {
+  if (typeof window !== 'undefined') {
+    let room = 'default';
+    if (window.location.pathname !== '/') {
+      room = window.location.pathname;
+    }
+    return `code:${room}`;
+  }
+}
+
 class Main extends Component {
   state = {
     theme: 'wg',
@@ -19,7 +30,7 @@ class Main extends Component {
     readInput: false,
     moderator: false,
     showCode: true,
-    code: LocalStorage.getItem('code:default') || defaultCode,
+    code: LocalStorage.getItem(roomKey()) || defaultCode,
   }
 
   componentDidMount() {
@@ -86,12 +97,7 @@ class Main extends Component {
   }
 
   codeChanged = (v) => {
-    let room = 'default';
-    if (window.location.pathname !== '/') {
-      room = window.location.pathname;
-    }
-
-    LocalStorage.setItem(`code:${room}`, v);
+    LocalStorage.setItem(roomKey(), v);
     this.code = v;
   }
 
@@ -191,6 +197,13 @@ class Main extends Component {
     this.setState({ code: this.state.received });
   }
 
+  save = () => {
+    this.codeRunner.fetch('/library/save', {
+      code: this.code,
+      room: window.location.pathname,
+    }, 'POST', 'Saving your code to the mothership');
+  }
+
   runComplete(error) {
     const msg = error ?
       `\nOops... An error occurred:\n\n${error.stack}` :
@@ -244,6 +257,10 @@ class Main extends Component {
                     <Dropdown.Item onClick={() => this.props.history.push('/rooms/adventure')}>Adventure</Dropdown.Item>
                     <Dropdown.Item onClick={() => this.props.history.push('/rooms/tko')}>TKO</Dropdown.Item>
                   </Dropdown.Menu>
+                </Dropdown.Item>
+                <Dropdown.Item onClick={this.save}>
+                  <Icon name='save' />
+                  <span className='text'>Save to Server</span>
                 </Dropdown.Item>
               </Dropdown.Menu>
             </Dropdown>

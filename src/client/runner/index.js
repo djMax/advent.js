@@ -26,18 +26,20 @@ export class CodeRunner {
       wait: this.wait,
       youtube: this.youtube,
       send: this.send,
+      require: this.require,
     };
 
     // These functions will automatically have "await" applied to them to
     // allow easier entry into the concept of async programming. Perhaps
     // outputting a warning would be a good thing.
-    this.asyncFunctions = ['readLine', 'readline', 'delay', 'choose', 'fetch', 'getOrAsk', 'wait'];
+    this.asyncFunctions = ['readLine', 'readline', 'delay', 'choose', 'fetch', 'getOrAsk', 'wait', 'require'];
     SocketIO.on('message', (c, s) => {
       console.log('GOT IT', c, s);
     });
   }
 
   run(codeText) {
+    this.moduleCache = {};
     this.handlers = {};
     const argNames = [];
     const argFns = [];
@@ -46,7 +48,9 @@ export class CodeRunner {
       argFns.push(kv[1]);
     });
     const transpiled = babeler(
-      `async function _user_function_(${argNames.join(',')}) { ${codeText} }
+      `async function _user_function_(${argNames.join(',')}) {
+        ${codeText}
+      }
       _user_function_;`,
       this.asyncFunctions,
     );
@@ -67,15 +71,15 @@ export class CodeRunner {
     SocketIO.send('message', msg);
   }
 
-  show = (image) => {
+  show = (image, opts) => {
     if (!image) {
       this.delegate.print('show() must be passed an image/media argument');
     }
     const re = /https?:\/\/[^\/]+\.youtube\.com\//i;
-    if (re.test(image)) {
-      this.youtube(image);
+    if (typeof image === 'string' && re.test(image)) {
+      this.youtube(image, opts);
     } else {
-      this.delegate.show(image);
+      this.delegate.show(image, opts);
     }
   }
 
@@ -148,6 +152,34 @@ export class CodeRunner {
       this.delegate.showLoader(false);
       throw error;
     }
+  }
+
+  require = async (moduleSpec) => {
+    if (this.moduleCache[moduleSpec]) {
+      return this.moduleCache[moduleSpec];
+    }
+    const response = await fetch(`/library/get`, {
+      credentials: 'include',
+      method: 'post',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ room: `/rooms/${moduleSpec}` }),
+    });
+    const { code } = await response.json();
+    const argNames = [];
+    const argFns = [];
+    Object.entries(this.functions).forEach((kv) => {
+      argNames.push(kv[0]);
+      argFns.push(kv[1]);
+    });
+    const transpiled = babeler(`(async function (${argNames.join(',')}) {
+      module = { exports: {}, parent: 'index.js' };
+      ${code}
+      return module.exports;
+    })`, this.asyncFunctions);
+    const fn = eval(transpiled);
+    const mod = await fn.apply(null, argFns);
+    this.moduleCache[moduleSpec] = mod;
+    return mod;
   }
 
   delay(seconds) {

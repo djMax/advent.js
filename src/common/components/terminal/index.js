@@ -76,9 +76,15 @@ export class Terminal extends React.Component {
           onKeyUp={this.control}
         />
         <pre>
-          {lines.map(({ text, image, key, onClick, youtube }) => {
+          {lines.map(({ text, image, key, onClick, youtube, ...rest }) => {
             if (image) {
-              return (<div key={key} onClick={onClick}><Image src={image} style={{ margin: 'auto' }} /></div>);
+              const images = typeof image === 'string' ? [image] : image;
+              const { style, ...restAttrs } = rest || {};
+              return (<div key={key} onClick={onClick}>
+                {images.map(i => (
+                  <Image key={i} src={i} {...restAttrs} style={{ margin: 'auto', ...style }} />
+                ))}
+                </div>);
             }
             if (youtube) {
               if (yts[yts.length - 1].key === key) {
