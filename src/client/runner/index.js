@@ -2,6 +2,7 @@ import fetch from 'isomorphic-fetch';
 import levenshtein from './levenshtein';
 import babeler from './babeler';
 import qs from 'query-string';
+import { SocketIO } from '../socket';
 import { LocalStorage } from '../storage';
 
 export class CodeRunner {
@@ -24,15 +25,20 @@ export class CodeRunner {
       show: this.show,
       wait: this.wait,
       youtube: this.youtube,
+      send: this.send,
     };
 
     // These functions will automatically have "await" applied to them to
     // allow easier entry into the concept of async programming. Perhaps
     // outputting a warning would be a good thing.
     this.asyncFunctions = ['readLine', 'readline', 'delay', 'choose', 'fetch', 'getOrAsk', 'wait'];
+    SocketIO.on('message', (c, s) => {
+      console.log('GOT IT', c, s);
+    });
   }
 
   run(codeText) {
+    this.handlers = {};
     const argNames = [];
     const argFns = [];
     Object.entries(this.functions).forEach((kv) => {
@@ -54,6 +60,11 @@ export class CodeRunner {
 
   print = (...values) => {
     this.delegate.print(values.join(' '));
+  }
+
+  send = (content, type) => {
+    const msg = typeof content === 'string' ? { content, type } : content;
+    SocketIO.send('message', msg);
   }
 
   show = (image) => {

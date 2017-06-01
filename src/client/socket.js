@@ -9,6 +9,10 @@ class SocketHandler extends EventEmitter {
       this.io.on('share', (e) => {
         this.emit('share', e.content.code, e.source);
       });
+
+      this.io.on('message', (e) => {
+        this.emit('message', e.content, e.source);
+      });
     }
   }
 

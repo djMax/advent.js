@@ -21,5 +21,13 @@ export default class SocketWrapper {
         source: socket.id,
       });
     });
+
+    socket.on('message', (content) => {
+      this.logger.info('message received');
+      socket.broadcast.emit('message', {
+        content,
+        source: socket.id,
+      });
+    });
   }
 }
