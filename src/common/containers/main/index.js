@@ -2,6 +2,7 @@ import qs from 'query-string';
 import fetch from 'isomorphic-fetch';
 import React, { Component } from 'react';
 import { withRouter } from 'react-router';
+import { connect } from 'react-redux';
 import { Container, Grid, Dimmer, Loader, Menu, Icon, Dropdown, Input } from 'semantic-ui-react';
 import { AceEditor } from '../../components/aceWrap';
 import { Terminal } from '../../components/terminal';
@@ -42,7 +43,13 @@ class Main extends Component {
       showMenu: query.showMenu === 'false' ? false : true,
     });
     if (window.location.pathname !== '/') {
-      const code = LocalStorage.getItem(`code:${window.location.pathname}`);
+      let code;
+      if (this.props.code && this.props.code.rooms) {
+        code = this.props.code.rooms[window.location.pathname];
+      }
+      if (!code) {
+        code = LocalStorage.getItem(roomKey);
+      }
       if (code) {
         state.code = code;
       }
@@ -198,10 +205,13 @@ class Main extends Component {
   }
 
   save = () => {
-    this.codeRunner.fetch('/library/save', {
-      code: this.code,
-      room: window.location.pathname,
-    }, 'POST', 'Saving your code to the mothership');
+    LocalStorage.setItem(roomKey(), this.code);
+    this.setState({ code: this.code }, () => {
+      this.codeRunner.fetch('/library/save', {
+        code: this.code,
+        room: window.location.pathname,
+      }, 'POST', 'Saving your code to the mothership');
+    });
   }
 
   runComplete(error) {
@@ -253,9 +263,9 @@ class Main extends Component {
                   <Icon name='dropdown' />
                   <span className='text'>Rooms</span>
                   <Dropdown.Menu>
-                    <Dropdown.Item onClick={() => this.props.history.push('/')}>Main</Dropdown.Item>
-                    <Dropdown.Item onClick={() => this.props.history.push('/rooms/adventure')}>Adventure</Dropdown.Item>
-                    <Dropdown.Item onClick={() => this.props.history.push('/rooms/tko')}>TKO</Dropdown.Item>
+                    <Dropdown.Item onClick={() => { window.location = '/'; }}>Main</Dropdown.Item>
+                    <Dropdown.Item onClick={() => { window.location = '/rooms/adventure' }}>Adventure</Dropdown.Item>
+                    <Dropdown.Item onClick={() => { window.location = '/rooms/blackjack' }}>Blackjack</Dropdown.Item>
                   </Dropdown.Menu>
                 </Dropdown.Item>
                 <Dropdown.Item onClick={this.save}>
@@ -315,4 +325,4 @@ class Main extends Component {
   }
 }
 
-export default withRouter(Main);
+export default connect(({ code }) => ({ code }))(withRouter(Main));

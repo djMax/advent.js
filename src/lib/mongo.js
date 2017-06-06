@@ -25,7 +25,10 @@ export default class MongoConnection {
 
   async getCode(name) {
     const code = await Code.findOne({ name });
-    return code.code;
+    if (code) {
+      return code.code;
+    }
+    return null;
   }
 
   async saveCode(name, code) {

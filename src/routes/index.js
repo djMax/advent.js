@@ -10,8 +10,15 @@ const DOCTYPE = '<!DOCTYPE html>\n';
 
 export default function (router) {
   router.get('*', async (req, res) => {
+    const initialState = {};
+    if (req.path.startsWith('/rooms')) {
+      const code = await req.gb.mongo.getCode(req.path);
+      initialState.code = { rooms: { [req.path]: code } };
+    }
+
     const store = createStore({
       reducers,
+      initialState,
       apiMiddleware: () => next => (action) => {
         if (action.meta && action.meta.apiAction) {
           throw new Error('Server side API renders not yet supported.');
@@ -20,16 +27,6 @@ export default function (router) {
       },
     });
 
-    if (req.user) {
-      await store.dispatch({
-        type: Action.Auth.LoginCompleted,
-        payload: {
-          body: {
-            identifier: req.session.auth.identifier,
-          },
-        },
-      });
-    }
     const preloadedState = store.getState();
 
     const context = {}; // this is a shared object!

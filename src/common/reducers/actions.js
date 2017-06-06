@@ -16,6 +16,10 @@ export const Action = {
     LogoutRequested: 'Logout',
     LoggedOut: 'Logout_FULFILLED',
   },
+  Code: {
+    CodeRequested: 'Code',
+    CodeCompleted: 'Code_FULFILLED',
+  },
 };
 
 unfold(Action);
