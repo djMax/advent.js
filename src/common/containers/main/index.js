@@ -46,9 +46,6 @@ class Main extends Component {
       let code;
       if (this.props.code && this.props.code.rooms) {
         code = this.props.code.rooms[window.location.pathname];
-        if (code) {
-          LocalStorage.setItem(roomKey, code);
-        }
       }
       if (!code) {
         code = LocalStorage.getItem(roomKey);
@@ -182,6 +179,7 @@ class Main extends Component {
   }
 
   run = () => {
+    LocalStorage.setItem(roomKey(), this.code);
     this.setState({
       code: this.code,
       autoHideCode: this.state.autoHideCode || (!this.state.showCode),
