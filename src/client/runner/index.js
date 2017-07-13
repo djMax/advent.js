@@ -12,6 +12,7 @@ export class CodeRunner {
     this.functions = {
       print: this.print,
       delay: this.delay,
+      random: this.random,
       readLine: this.readLine,
       readline: this.readLine,
       choose: this.choose,
@@ -64,6 +65,17 @@ export class CodeRunner {
 
   print = (...values) => {
     this.delegate.print(values.join(' '));
+  }
+
+  random(minOrMax, optionalMax) {
+    let min = minOrMax;
+    let max = optionalMax;
+    if (maxOrNull === undefined) {
+      min = 1;
+      max = minOrMax;
+    }
+    const rand = Math.floor(Math.random() * Math.abs(max - min));
+    return Math.min(min, max) + rand;
   }
 
   send = (content, type) => {
